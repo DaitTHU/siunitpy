@@ -135,7 +135,7 @@ class Quantity:
 
     def __repr__(self) -> str:
         return self.__class__.__name__ \
-            + f'(value={repr(self.value)}, unit={self.unit}'\
+            + f'(value={repr(self.value)}, unit={self.unit}, '\
             f'uncertainty={self.uncertainty})'
 
     def __str__(self) -> str:

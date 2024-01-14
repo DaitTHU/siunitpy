@@ -9,9 +9,8 @@ __all__ = ['SI']
 class SI(ConstClass):
     '''This constclass provides common physic constants,
     like speed of light c, Planck const h... which are all
-    `Quantity` object with proper unit.
+    immutable `Quantity` object with proper unit.
     >>> SI.g    # 9.8067 m/s2
-    >>> SI.
 
     use them directly.
     '''
@@ -19,7 +18,7 @@ class SI(ConstClass):
     ### exact constants defined by SI
 
     # hyperfine transition frequency of Cs-133
-    Dnu133Cs = Constant(9_192_631_770, 'Hz')
+    nu133Cs = Constant(9_192_631_770, 'Hz')
     # speed of light in vacuum
     c = Constant(299_792_458, 'm/s')
     # Planck constant

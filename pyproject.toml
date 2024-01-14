@@ -8,7 +8,7 @@ version = "0.0.1"
 authors = [
   { name="Dait", email="daitthu@qq.com" },
 ]
-description = "A package for units"
+description = "A package for SI units and uncertainty"
 readme = "README.md"
 requires-python = ">=3.9"
 classifiers = [
@@ -16,3 +16,6 @@ classifiers = [
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
 ]
 
+[project.urls]
+Homepage = "https://github.com/DaitTHU/siunitpy"
+Issues = "https://github.com/DaitTHU/siunitpy/issues"

@@ -41,10 +41,10 @@ _FORMULARIZE = {
     '℃': '°C', '℉': '°F',
     '٪': '%', '⁒': '%',
 } | {s: str(i) for i, s in enumerate(_SUPERSCRIPT)}
-_SPECIAL_UNIT = re.compile(r'eV/c2?|' + '|'.join(_FORMULARIZE))
-_FORMULARIZE |= {'eV/c': 'eVpc', 'eV/c2': 'eVpcc'}
+_SPECIAL_UNIT = re.compile(r'eV/c[2²]?|' + '|'.join(_FORMULARIZE))
+_FORMULARIZE |= {'eV/c': 'eVpc', 'eV/c2': 'eVpcc', 'eV/c²': 'eVpcc'}
 _FORMULAIC_UNIT = re.compile(r'eVpcc?')
-_SPECIALIZE = {'eVpc': 'eV/c', 'eVpcc': 'eV/c2'}
+_SPECIALIZE = {'eVpc': 'eV/c', 'eVpcc': 'eV/c²'}
 
 
 def _resolve(symbol: str, /) -> tuple[Compound[str], Dimension, float]:

@@ -38,7 +38,7 @@ def _scalar_mul(op: Callable, valop: Callable):
 
 
 class Unit:
-    
+
     __slots__ = ('_elements', '_dimension', '_value', '_symbol')
 
     @overload
@@ -60,7 +60,7 @@ class Unit:
             return
         elif dimension is None:
             raise TypeError(f"{type(symbol) = } must be 'str'.")
-        # developer mode, make sure type(symbol)
+        # developer mode, make sure type(symbol) is Compound[str]
         if dimension == DimensionConst.DIMENSIONLESS:  # like 'C2/F·J'
             self._elements: Compound[str] = Compound({})
         else:
@@ -77,7 +77,7 @@ class Unit:
     def value(self) -> float: return self._value
 
     def __repr__(self) -> str:
-        return self.__class__.__name__ + f'({repr(self.symbol)}, ' \
+        return self.__class__.__name__ + f'({self.symbol}, ' \
             f'dim={self.dimension}, value={self.value})'
 
     def __str__(self) -> str: return self.symbol

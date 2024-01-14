@@ -1,6 +1,6 @@
 # TODO: optimize __setitem__ and __delitem_
 
-#from __future__ import annotations
+# from __future__ import annotations
 
 import operator
 from typing import Callable, Iterable, Sequence, TypeVar
@@ -52,12 +52,11 @@ def _binary(op: Callable):
             return Vector(op(y, x) for x, y in zip(self, other))
         else:
             return Vector(op(other, x) for x in self)
-        
+
     return __op, __iop, __rop
 
 
 class Vector(list[T]):
-    
 
     def __init__(self, iterable: Iterable[T] = (), /) -> None:
         '''Construct a `Vector`
@@ -140,12 +139,12 @@ class Vector(list[T]):
             raise TypeError(f'Inappropriate index type: {type(index)}')
         # boolean indexing
         if all(isinstance(idx, bool) for idx in index):
-            for i, idx in enumerate(index):
+            for i, idx in reversed(list(enumerate(index))):
                 if idx:
                     killer(i)
             return
         # advanced indexing
-        for idx in index:
+        for idx in sorted(index, reverse=True):
             killer(idx)
 
     @classmethod
@@ -235,13 +234,11 @@ class Vector(list[T]):
     def equal(left, right) -> bool:
         '''since `v == u` returns a `Vector`, the `Vector.equal(v, u)` assumes 
         the function of determining whether `v`, `u` are equal or not.
-
-        similarly, we got `Vector.gt`, `Vector.lt`, `Vector.ge`, `Vector.le`.
         '''
-        return list.__eq__(left, right)
-
-    gt, lt, ge, le = (staticmethod(op) for op in
-                      (list.__gt__, list.__lt__, list.__ge__, list.__le__))
+        for l, r in zip(left, right, strict=True):
+            if l != r:
+                return False
+        return True
 
 
 class VectorMatch:
@@ -250,6 +247,3 @@ class VectorMatch:
 
 class VectorMatchError(Exception):
     pass
-
-
-

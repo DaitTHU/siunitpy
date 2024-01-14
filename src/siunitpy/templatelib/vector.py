@@ -75,6 +75,10 @@ class Vector(list[T]):
         '''
         super().__init__(iterable)
 
+    @classmethod
+    def packup(cls, *args: T):
+        return cls(args)
+
     def __getitem__(self, index):
         getter = super().__getitem__
         # get item

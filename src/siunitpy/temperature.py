@@ -13,6 +13,7 @@ T = TypeVar('T', int, float)
 _ONE = Fraction(1)
 _FIVE_NINTHS = Fraction(5, 9)
 _NINE_FIFTHS = Fraction(9, 5)
+_ABSOLUTE_ZERO = -273.15
 
 _TEMPERATURE_UNIT = {
     'K': UnitConst.KELVIN,
@@ -59,9 +60,12 @@ class Temperature(Quantity):
             return _TEMPERATURE_UNIT[unit.symbol]
         raise TypeError(f"'{unit} is not a temperature unit.")
 
+    def __rmul__(self, other):
+        return Temperature(other * self.value, self.unit, other * self.uncertainty)
+
     def __as_celsius(self) -> tuple[T, Fraction]:
         if self.unit.symbol == 'K':
-            return self.value - 273.15, _ONE
+            return self.value + _ABSOLUTE_ZERO, _ONE
         if self.unit.symbol == '°C':
             return self.value, _ONE
         return (self.value - 32) * 5 / 9, _FIVE_NINTHS
@@ -69,7 +73,7 @@ class Temperature(Quantity):
     @staticmethod
     def __celsius_to(value: T, new_unit: Unit) -> tuple[T, Fraction]:
         if new_unit.symbol == 'K':
-            return value + 273.15, _ONE
+            return value - _ABSOLUTE_ZERO, _ONE
         if new_unit.symbol == '°C':
             return value, _ONE
         return value * 9 / 5 + 32, _NINE_FIFTHS
@@ -84,4 +88,3 @@ class degree(ConstClass):
     K = Temperature('K')
     C = Temperature('°C')
     F = Temperature('°F')
-    

@@ -8,7 +8,7 @@ version = "0.0.2"
 authors = [
   { name="Dait", email="daitthu@qq.com" },
 ]
-description = "A package for SI units and uncertainty"
+description = "A package for SI unit, quantity and uncertainty"
 readme = "README.md"
 requires-python = ">=3.9"
 classifiers = [

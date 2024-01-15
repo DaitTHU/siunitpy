@@ -145,6 +145,14 @@ class Quantity:
         if self.unit == UnitConst.DIMENSIONLESS:
             return value
         return f'{value} {self.unit}'
+    
+    def __format__(self, format_spec):
+        value = format(self.value, format_spec)
+        if not self.is_exact():
+            value += f' ± {format(self.uncertainty, format_spec)}'
+        if self.unit == UnitConst.DIMENSIONLESS:
+            return value
+        return f'{value} {self.unit}'
 
     def is_exact(self) -> bool:
         if isinstance(self.uncertainty, Iterable):
@@ -253,3 +261,7 @@ class Quantity:
         unit = self._unit / n
         uncertainty = self.uncertainty * value / (n * self.value)
         return Quantity(value, unit, uncertainty)
+    
+    __array_priority__ = 1000000
+    # def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+    #     pass

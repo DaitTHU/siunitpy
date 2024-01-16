@@ -73,10 +73,10 @@ def _resolve(symbol: str, /) -> tuple[Compound[str], Dimension, float]:
     units = [unit for unit in _UNIT_SEP.split(symbol) if unit]
     # get exponent
     ematch_gen = (_UNIT_EXPO.search(unit) for unit in units)
-    expo = Vector(1 if e is None else int(e.group()) for e in ematch_gen)
+    expo = [1 if e is None else int(e.group()) for e in ematch_gen]
     for i, sepmatch in enumerate(_UNIT_SEP.finditer(symbol)):
         if '/' in sepmatch.group():
-            expo[i + 1:] = -expo[i + 1:]
+            neg_after(expo, i)  # you can also define expo a Vector
             break
     # remove exponent
     units = [_UNIT_STR.search(unit).group() for unit in units]  # type: ignore
@@ -159,6 +159,11 @@ def sup(expo: Fraction) -> str:
 
 def int_sup(number: int) -> str:
     return ''.join(_SUPERSCRIPT[int(digit)] for digit in str(number))
+
+
+def neg_after(ls: list, idx: int) -> None:
+    for i in range(len(ls))[idx + 1:]:
+        ls[i] = -ls[i]
 
 
 class UnitSymbolError(Exception):

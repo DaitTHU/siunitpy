@@ -1,13 +1,15 @@
 import operator
 from copy import copy
-from typing import Callable, Iterable
+from typing import Callable, Generic, Iterable, TypeVar
 
 from .dimension import Dimension
 from .templatelib.utils import _hypotenuse, _nthroot
-from .unit import Unit
+from .unit import Unit, UnitDimensionError
 from .unitconst import UnitConst
 
 __all__ = ['Quantity']
+
+T = TypeVar('T')
 
 
 def _comparison(op: Callable[[float, float], bool]):
@@ -108,8 +110,7 @@ def _unit_to_basic(unit: Unit) -> tuple[Unit, float]: return unit.to_basic()
 def _unit_simplify(unit: Unit) -> tuple[Unit, float]: return unit.simplify()
 
 
-class Quantity:
-    
+class Quantity(Generic[T]):
     __slots__ = ('_value', '_unit', '_uncertainty')
 
     def __init__(self, value: float, /,
@@ -145,7 +146,7 @@ class Quantity:
         if self.unit == UnitConst.DIMENSIONLESS:
             return value
         return f'{value} {self.unit}'
-    
+
     def __format__(self, format_spec):
         value = format(self.value, format_spec)
         if not self.is_exact():
@@ -214,11 +215,12 @@ class Quantity:
     def isimplify_unit(self) -> 'Quantity':
         return self.__ichange_unit(_unit_simplify)
 
-    def addable(self, other, /, *, assertTrue=False) -> bool:
-        if not isinstance(other, Quantity):
-            raise TypeError(f"type of '{other}' is not Quantity.")
-        return self.unit.parallel(other.unit, assertTrue=assertTrue)
-    
+    def addable(self, other: 'Quantity', /, *, assertTrue=False) -> bool:
+        try:
+            return self.unit.parallel(other.unit, assertTrue=assertTrue)
+        except AttributeError:
+            raise TypeError(f"type of '{other}' must be 'Quantity'.")
+
     def remove_uncertainty(self) -> 'Quantity':
         return Quantity(self.value, self.unit)
 
@@ -239,8 +241,8 @@ class Quantity:
         operator.mul, operator.imul, operator.add, operator.pos)
     __matmul__, __imatmul__, __rmatmul__ = _muldiv(
         operator.matmul, operator.imatmul, operator.add, operator.pos)
-    # __floordiv__, __ifloordiv__, __rfloordiv__ = _muldiv(
-    #    operator.floordiv, operator.ifloordiv, operator.sub, operator.neg)
+    __floordiv__, __ifloordiv__, __rfloordiv__ = _muldiv(
+        operator.floordiv, operator.ifloordiv, operator.sub, operator.neg)
     __truediv__, __itruediv__, __rtruediv__ = _muldiv(
         operator.truediv, operator.itruediv, operator.sub, operator.neg)
 
@@ -256,12 +258,19 @@ class Quantity:
         self._uncertainty *= self.value * other / old_value
         return self
 
+    def __rpow__(self, other):
+        if not self.is_dimensionless():
+            raise UnitDimensionError(
+                "Quantity must be dimensionless as exponent.")
+        return other ** self.value
+
     def nthroot(self, n: int):
+        '''n-th root of Quantity. e.g. square root when n = 2.'''
         value = _nthroot(self._value, n)
         unit = self._unit / n
         uncertainty = self.uncertainty * value / (n * self.value)
         return Quantity(value, unit, uncertainty)
-    
+
     __array_priority__ = 1000000
     # def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
     #     pass

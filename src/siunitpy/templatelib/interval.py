@@ -1,8 +1,10 @@
 from typing import Generic, TypeVar
 
+from .linear import Linear
+
 __all__ = ['Interval']
 
-T = TypeVar('T')
+T = TypeVar('T', bound=Linear)
 
 
 class Interval(Generic[T]):
@@ -11,8 +13,11 @@ class Interval(Generic[T]):
     def __init__(self, lo: T, hi: T, /) -> None:
         if lo > hi:
             raise ValueError("lo must be less than or equal to hi.")
-        self._lo = lo
-        self._hi = hi
+        self._lo, self._hi = lo, hi
+
+    @classmethod
+    def neighborhood(cls, center: T, radius: T) -> 'Interval':
+        return Interval(center - radius, center + radius)
 
     @property
     def lo(self) -> T: return self._lo
@@ -22,8 +27,6 @@ class Interval(Generic[T]):
     def mid(self) -> T: return (self.lo + self.hi) / 2
     @property
     def length(self) -> T: return self.hi - self.lo
-
-    
 
     def cover(self, other: 'Interval') -> bool:
         return self.lo <= other.lo and other.hi <= self.hi
@@ -42,3 +45,6 @@ class Interval(Generic[T]):
 
     def hihalf(self) -> 'Interval':
         return Interval(self.mid, self.hi)
+
+    def __eq__(self, other: 'Interval') -> bool:
+        return self.lo == other.lo and self.hi == other.hi

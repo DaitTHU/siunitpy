@@ -1,19 +1,20 @@
 import operator
 from copy import copy
 from math import sqrt
-from typing import Callable, Generic, Iterable, Optional, Sequence, TypeVar
+import numbers
+from typing import Callable, Generic, Optional, Sequence, TypeVar
 
-from .templatelib import Interval
+from .templatelib import Interval, Linear
 
-__all__ = ['Value']
+__all__ = ['Variable']
 
-T = TypeVar('T')
+T = TypeVar('T', bound=Linear)
 
 
 def _nthroot(a: T, b) -> T:
     '''same as a ** (1/b).'''
     if b == 2 and isinstance(a, float):
-        return sqrt(a)
+        return sqrt(a) # type: ignore
     return a ** (1 / b)  # type: ignore
 
 
@@ -23,32 +24,34 @@ def _hypotenuse(a: Optional[T], b: Optional[T]) -> Optional[T]:
     if b is None:
         return a
     # if isinstance(a, Sequence) or isinstance(b, Sequence):
-    return sqrt(a**2 + b**2)
+    return sqrt(a**2 + b**2) # type: ignore
 
 
 def _comparison(op: Callable[[T, T], bool]):
-    def __op(self: 'Value', other: 'Value'):
+    def __op(self, other):
+        if not isinstance(other, Variable):
+            return op(self.value, other)
         return op(self.value, other.value)
     return __op
 
 
 def _unary_op(op: Callable):
-    def __op(self: 'Value'):
-        return Value(op(self.value), self.uncertainty)
+    def __op(self: 'Variable'):
+        return Variable(op(self.value), self.uncertainty)
     return __op
 
 
 def _addsub(op: Callable, iop: Callable):
     '''operator: a + b, a - b.'''
 
-    def __op(self: 'Value', other: 'Value'):
-        if not isinstance(other, Value):
-            return Value(op(self.value, other), self.uncertainty)
-        return Value(op(self.value, other.value),
+    def __op(self: 'Variable', other: 'Variable'):
+        if not isinstance(other, Variable):
+            return Variable(op(self.value, other), self.uncertainty)
+        return Variable(op(self.value, other.value),
                      _hypotenuse(self.uncertainty, other.uncertainty))
 
-    def __iop(self: 'Value', other: 'Value'):
-        if not isinstance(other, Value):
+    def __iop(self: 'Variable', other: 'Variable'):
+        if not isinstance(other, Variable):
             self._value = iop(self.value, other)
             return self
         self._value = iop(self.value, other.value)
@@ -61,17 +64,17 @@ def _addsub(op: Callable, iop: Callable):
 def _muldiv(op: Callable, iop: Callable):
     '''operator: a * b, a / b.'''
 
-    def __op(self: 'Value', other: 'Value'):
-        if not isinstance(other, Value):
-            return Value(op(self.value, other), op(self.uncertainty, abs(other)))
+    def __op(self: 'Variable', other: 'Variable'):
+        if not isinstance(other, Variable):
+            return Variable(op(self.value, other), op(self.uncertainty, abs(other)))
         new_value = op(self.value, other.value)
         new_uncertainty = new_value * \
             _hypotenuse(self.uncertainty / self.value,
                         other.uncertainty / other.value)
-        return Value(new_value, new_uncertainty)
+        return Variable(new_value, new_uncertainty)
 
-    def __iop(self: 'Value', other: 'Value'):
-        if not isinstance(other, Value):
+    def __iop(self: 'Variable', other: 'Variable'):
+        if not isinstance(other, Variable):
             self._value = iop(self.value, other)
             self._uncertainty = op(self.uncertainty, abs(other))
             return self
@@ -81,16 +84,16 @@ def _muldiv(op: Callable, iop: Callable):
                         other.uncertainty / other.value)
         return self
 
-    def __rop(self: 'Value', other):
+    def __rop(self: 'Variable', other):
         '''when other is not a `Value` object.'''
         new_value = op(other, self.value)
         new_uncertainty = abs(new_value / self.value) * self.uncertainty
-        return Value(new_value, new_uncertainty)
+        return Variable(new_value, new_uncertainty)
 
     return __op, __iop, __rop
 
 
-class Value(Generic[T]):
+class Variable(Generic[T]):
     __slots__ = ("_value", "_uncertainty")
 
     def __init__(self, value: T, /, uncertainty: Optional[T] = None) -> None:
@@ -104,8 +107,10 @@ class Value(Generic[T]):
 
     @uncertainty.setter
     def uncertainty(self, uncertainty: Optional[T]):
-        if uncertainty is not None \
-                and not isinstance(uncertainty, type(self.value)):
+        if uncertainty is None:
+            self._uncertainty = None
+            return
+        if not isinstance(uncertainty, type(self.value)):
             raise TypeError("value and uncertainty must have the same type.")
         if isinstance(uncertainty, Sequence):
             if any(u < 0 for u in uncertainty):
@@ -141,8 +146,14 @@ class Value(Generic[T]):
     def is_exact(self) -> bool:
         return self.uncertainty is None
 
-    def copy(self) -> 'Value':
-        return Value(copy(self.value), copy(self.uncertainty))
+    def copy(self) -> 'Variable':
+        return Variable(copy(self.value), copy(self.uncertainty))
+
+    def almost_equal(self, other: 'Variable') -> bool:
+        return self.confidence_interval.intersect(other.confidence_interval)
+
+    def same_as(self, other: 'Variable') -> bool:
+        return self.value == other.value and self.uncertainty == other.uncertainty
 
     __eq__ = _comparison(operator.eq)
     __ne__ = _comparison(operator.ne)
@@ -168,7 +179,7 @@ class Value(Generic[T]):
     def __pow__(self, other: T):
         new_value = self.value ** other
         new_uncertainty = new_value * self.uncertainty / self.value
-        return Value(new_value, new_uncertainty)
+        return Variable(new_value, new_uncertainty)
 
     def __ipow__(self, other: T):
         old_value = copy(self._value)
@@ -182,4 +193,4 @@ class Value(Generic[T]):
         '''n-th root of Value. e.g. square root when n = 2.'''
         value = _nthroot(self._value, n)
         uncertainty = self.uncertainty * value / (n * self.value)
-        return Value(value, uncertainty)
+        return Variable(value, uncertainty)

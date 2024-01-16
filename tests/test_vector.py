@@ -1,5 +1,6 @@
-import unittest
 import sys
+import unittest
+
 from src.siunitpy.templatelib import Vector
 
 

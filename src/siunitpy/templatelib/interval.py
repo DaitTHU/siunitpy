@@ -15,13 +15,15 @@ class Interval(Generic[T]):
         self._hi = hi
 
     @property
-    def lo(self): return self._lo
+    def lo(self) -> T: return self._lo
     @property
-    def hi(self): return self._hi
+    def hi(self) -> T: return self._hi
     @property
-    def mid(self): return (self.lo + self.hi) / 2
+    def mid(self) -> T: return (self.lo + self.hi) / 2
+    @property
+    def length(self) -> T: return self.hi - self.lo
 
-    def __len__(self) -> T: return self.hi - self.lo
+    
 
     def cover(self, other: 'Interval') -> bool:
         return self.lo <= other.lo and other.hi <= self.hi

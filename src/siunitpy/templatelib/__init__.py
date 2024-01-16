@@ -1,9 +1,6 @@
 from .compound import Compound
-from .continuedfraction import ContinuedFraction
-from .utils import sqrt
+from .continuedfraction import ContinuedFraction  # just for fun
+from .linear import Linear
 from .vector import Vector
 
-__all__ = [
-    'Vector', 'Compound', 'ContinuedFraction', 
-    'sqrt'
-]
+__all__ = ['Vector', 'Compound', 'Linear', 'ContinuedFraction']

@@ -6,11 +6,14 @@ from typing import Callable, Optional, Union, overload
 from .dimension import Dimension
 from .dimensionconst import DimensionConst
 from .templatelib.compound import Compound
-from .templatelib.utils import _inplace, _nthroot
+from .templatelib.utils import _inplace
 from .unit_analysis import _combine, _deprefix, _resolve
 from .unit_data import _BASIC_SI, _UNIT_STD
 
 __all__ = ['Unit', 'UnitDimensionError', '_DIMENSIONLESS_UNIT']
+
+
+def _nthroot(a, b): return a ** (1 / b)
 
 
 def _vector_add(op: Callable, valop: Callable):
@@ -38,7 +41,6 @@ def _scalar_mul(op: Callable, valop: Callable):
 
 
 class Unit:
-
     __slots__ = ('_elements', '_dimension', '_value', '_symbol')
 
     @overload

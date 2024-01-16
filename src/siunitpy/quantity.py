@@ -3,26 +3,26 @@ from copy import copy
 from typing import Callable, Generic, Iterable, TypeVar
 
 from .dimension import Dimension
-from .templatelib.utils import _hypotenuse, _nthroot
 from .unit import Unit, UnitDimensionError
 from .unitconst import UnitConst
+from .variable import Variable
+from .templatelib import Linear
 
 __all__ = ['Quantity']
 
-T = TypeVar('T')
+T = TypeVar('T', bound=Linear)
 
 
 def _comparison(op: Callable[[float, float], bool]):
     def __op(self, other):
         self.addable(other, assertTrue=True)
-        return op(self.value * self.unit.value,
-                  other.value * other.unit.value)
+        return op(self.variable * self.unit.value, other.variable * other.unit.value)
     return __op
 
 
 def _unary_op(op: Callable):
     def __op(self: 'Quantity'):
-        return Quantity(op(self.value), self.unit, self.uncertainty)
+        return Quantity(op(self.variable), self.unit)
     return __op
 
 
@@ -33,21 +33,18 @@ def _addsub(op: Callable, iop: Callable):
 
     def __op(self: 'Quantity', other: 'Quantity'):
         if self.is_dimensionless() and not isinstance(other, Quantity):
-            return Quantity(op(self.value, other), self.unit, self.uncertainty)
+            return Quantity(op(self.variable, other), self.unit)
         self.addable(other, assertTrue=True)
-        other_value = other.value * other.unit.value_over(self.unit)
-        return Quantity(op(self.value, other_value), self.unit,
-                        _hypotenuse(self.uncertainty, other.uncertainty))
+        other_var = other.variable * other.unit.value_over(self.unit)
+        return Quantity(op(self.variable, other_var), self.unit)
 
     def __iop(self: 'Quantity', other: 'Quantity'):
         if self.is_dimensionless() and not isinstance(other, Quantity):
-            self._value = iop(self.value, other)
+            self._variable = iop(self.variable, other)
             return self
         self.addable(other, assertTrue=True)
-        other_value = other.value * other.unit.value_over(self.unit)
-        self._value = iop(self.value, other_value)
-        self._uncertainty = _hypotenuse(
-            self.uncertainty, other.uncertainty)
+        self._variable = iop(self.variable, other.variable *
+                             other.unit.value_over(self.unit))
         return self
 
     return __op, __iop
@@ -63,8 +60,7 @@ def _muldiv(op: Callable, iop: Callable, unitop: Callable[[Unit, Unit], Unit],
 
     def __op(self: 'Quantity', other: 'Quantity'):
         if not isinstance(other, Quantity):
-            return Quantity(op(self.value, other), self.unit,
-                            op(self.uncertainty, abs(other)))
+            return Quantity(op(self.variable, other), self.unit)
         new_value = op(self.value, other.value)
         new_unit = unitop(self.unit, other.unit)
         if new_unit.parallel(UnitConst.DIMENSIONLESS):
@@ -73,34 +69,25 @@ def _muldiv(op: Callable, iop: Callable, unitop: Callable[[Unit, Unit], Unit],
         else:
             new_unit, factor = new_unit.simplify()
             new_value *= factor
-        new_uncertainty = new_value * \
-            _hypotenuse(self.uncertainty / self.value,
-                        other.uncertainty / other.value)
-        return Quantity(new_value, new_unit, new_uncertainty)
+        return Quantity(new_value, new_unit)
 
     def __iop(self: 'Quantity', other: 'Quantity'):
         if not isinstance(other, Quantity):
-            self._value = iop(self.value, other)
-            self._uncertainty = op(self.uncertainty, abs(other))
+            self._variable = iop(self.value, other)
             return self
-        self._value = iop(self.value, other.value)
+        self._variable = iop(self.value, other.value)
         self._unit = unitop(self.unit, other.unit)
         if self.unit.parallel(UnitConst.DIMENSIONLESS):
-            self._value *= self.unit.value
+            self._variable *= self.unit.value
             self._unit = UnitConst.DIMENSIONLESS
         else:
             self._unit, factor = self.unit.simplify()
-            self._value *= factor
-        self._uncertainty = self.value * \
-            _hypotenuse(self.uncertainty / self.value,
-                        other.uncertainty / other.value)
+            self._variable *= factor
         return self
 
     def __rop(self: 'Quantity', other):
         '''other is not a `Quantity` object.'''
-        new_value = op(other, self.value)
-        new_uncertainty = new_value * self.uncertainty / self.value
-        return Quantity(new_value, pm(self.unit), new_uncertainty)
+        return Quantity(op(other, self._variable), pm(self.unit))
 
     return __op, __iop, __rop
 
@@ -111,60 +98,55 @@ def _unit_simplify(unit: Unit) -> tuple[Unit, float]: return unit.simplify()
 
 
 class Quantity(Generic[T]):
-    __slots__ = ('_value', '_unit', '_uncertainty')
+    __slots__ = ('_variable', '_unit')
 
-    def __init__(self, value: float, /,
+    def __init__(self, value: T | Variable[T], /,
                  unit: str | Unit = UnitConst.DIMENSIONLESS,
-                 uncertainty: float = 0) -> None:
+                 uncertainty: T | None = None) -> None:
         if not isinstance(unit, (str, Unit)):
             raise TypeError(f"{type(unit) = } is not 'str' or 'Unit'.")
-        self._value = value
+        if isinstance(value, Variable):
+            self._variable = value
+        else:
+            self._variable = Variable(value, uncertainty)
         self._unit = Unit.move(unit)
-        self._uncertainty = uncertainty
 
     @classmethod
-    def one(cls, unit: str | Unit): return cls(1, unit, 0)
+    def one(cls, unit: str | Unit): return cls(1, unit)
 
     @property
-    def value(self) -> float: return self._value
+    def variable(self) -> Variable[T]: return self._variable
+    @property
+    def value(self) -> T: return self._variable.value
+    @property
+    def uncertainty(self) -> T | None: return self._variable.uncertainty
     @property
     def unit(self) -> Unit: return self._unit
     @property
     def dimension(self) -> Dimension: return self._unit.dimension
-    @property
-    def uncertainty(self) -> float: return self._uncertainty
 
     def __repr__(self) -> str:
         return self.__class__.__name__ \
-            + f'(value={repr(self.value)}, unit={self.unit}, '\
-            f'uncertainty={self.uncertainty})'
+            + f'(value={repr(self.value)}, uncertainty={self.uncertainty}, '\
+            f'unit={self.unit})'
 
     def __str__(self) -> str:
-        value = str(self.value)
-        if not self.is_exact():
-            value += f' ± {self.uncertainty}'
         if self.unit == UnitConst.DIMENSIONLESS:
-            return value
-        return f'{value} {self.unit}'
+            return str(self.variable)
+        return f'{self.variable} {self.unit}'
 
     def __format__(self, format_spec):
-        value = format(self.value, format_spec)
-        if not self.is_exact():
-            value += f' ± {format(self.uncertainty, format_spec)}'
         if self.unit == UnitConst.DIMENSIONLESS:
-            return value
-        return f'{value} {self.unit}'
+            return format(self.variable, format_spec)
+        return f'{self.variable:{format_spec}} {self.unit}'
 
-    def is_exact(self) -> bool:
-        if isinstance(self.uncertainty, Iterable):
-            return all(unc == 0 for unc in self.uncertainty)
-        return self.uncertainty == 0
+    def is_exact(self) -> bool: return self._variable.is_exact()
 
     def is_dimensionless(self) -> bool:
         return self.unit == UnitConst.DIMENSIONLESS
 
     def copy(self) -> 'Quantity':
-        return Quantity(copy(self.value), self.unit, copy(self.uncertainty))
+        return Quantity(copy(self.variable), self.unit)
 
     def to(self, new_unit: str | Unit, *, assertDimension=True):
         '''unit transform.
@@ -173,28 +155,24 @@ class Quantity(Generic[T]):
         if assertDimension:
             self.unit.parallel(new_unit, assertTrue=True)
         factor = self.unit.value_over(new_unit)
-        return Quantity(self.value * factor, new_unit,
-                        self.uncertainty * factor)
+        return Quantity(self.variable * factor, new_unit)
 
     def ito(self, new_unit: str | Unit, *, assertDimension=True):
         '''inplace unit transform'''
         new_unit = Unit.move(new_unit)
         if assertDimension:
             self.unit.parallel(new_unit, assertTrue=True)
-        factor = self.unit.value_over(new_unit)
-        self._value *= factor
-        self._uncertainty *= factor
+        self._variable *= self.unit.value_over(new_unit)
         self._unit = new_unit
         return self
 
     def __change_unit(self, unit_fun: Callable[[Unit], tuple[Unit, float]]):
         new_unit, factor = unit_fun(self.unit)
-        return Quantity(self.value * factor, new_unit, self.uncertainty * factor)
+        return Quantity(self.variable * factor, new_unit)
 
     def __ichange_unit(self, unit_fun: Callable[[Unit], tuple[Unit, float]]):
         self._unit, factor = unit_fun(self.unit)
-        self._value *= factor
-        self._uncertainty *= factor
+        self._variable *= factor
         return self
 
     def deprefix_unit(self) -> 'Quantity':
@@ -247,15 +225,11 @@ class Quantity(Generic[T]):
         operator.truediv, operator.itruediv, operator.sub, operator.neg)
 
     def __pow__(self, other):
-        new_value = self.value ** other
-        new_uncertainty = new_value * self.uncertainty / self.value
-        return Quantity(new_value, self.unit * other, new_uncertainty)
+        return Quantity(self.variable ** other, self.unit * other)
 
     def __ipow__(self, other):
-        old_value = copy(self._value)
-        self._value **= other
+        self._variable **= other
         self._unit *= other
-        self._uncertainty *= self.value * other / old_value
         return self
 
     def __rpow__(self, other):
@@ -266,11 +240,9 @@ class Quantity(Generic[T]):
 
     def nthroot(self, n: int):
         '''n-th root of Quantity. e.g. square root when n = 2.'''
-        value = _nthroot(self._value, n)
-        unit = self._unit / n
-        uncertainty = self.uncertainty * value / (n * self.value)
-        return Quantity(value, unit, uncertainty)
+        return Quantity(self.variable**(1 / n), self._unit / n)
 
-    __array_priority__ = 1000000
+    __array_priority__ = 1000000000000
+
     # def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
     #     pass

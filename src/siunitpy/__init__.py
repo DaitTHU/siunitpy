@@ -8,3 +8,4 @@ from .quantity import Quantity
 from .temperature import degree
 from .unit import Unit, UnitDimensionError
 from .unitconst import UnitConst
+from .variable import Variable

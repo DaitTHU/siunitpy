@@ -1,8 +1,8 @@
-from math import sqrt
 import operator
-from typing import TypeVar, Iterable, Callable
 from decimal import Decimal
 from fractions import Fraction
+from math import sqrt
+from typing import Callable, Iterable, TypeVar
 
 __all__ = [
     'unzip', 'common_rational',

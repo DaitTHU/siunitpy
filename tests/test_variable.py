@@ -12,12 +12,12 @@ class TestVariable(unittest.TestCase):
         self.assertEqual(v0.value, 100)
         self.assertEqual(v0.uncertainty, None)
         self.assertEqual(v0.confidence_interval, Interval(100, 100))
-        self.assertEqual(repr(v0), 'Value(100, uncertainty=None)')
+        self.assertEqual(repr(v0), 'Variable(100, uncertainty=None)')
         self.assertEqual(str(v0), '100')
         v1 = Variable(10.0, 0.1)
         self.assertEqual(v1.uncertainty, 0.1)
         self.assertEqual(v1.confidence_interval, Interval(9.9, 10.1))
-        self.assertEqual(repr(v1), 'Value(10.0, uncertainty=0.1)')
+        self.assertEqual(repr(v1), 'Variable(10.0, uncertainty=0.1)')
         self.assertEqual(str(v1), '10.0 ± 0.1')
 
     def test_operation(self):

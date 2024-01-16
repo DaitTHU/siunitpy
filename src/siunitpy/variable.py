@@ -1,7 +1,7 @@
+import numbers
 import operator
 from copy import copy
 from math import sqrt
-import numbers
 from typing import Callable, Generic, Optional, Sequence, TypeVar
 
 from .templatelib import Interval, Linear
@@ -11,20 +11,13 @@ __all__ = ['Variable']
 T = TypeVar('T', bound=Linear)
 
 
-def _nthroot(a: T, b) -> T:
-    '''same as a ** (1/b).'''
-    if b == 2 and isinstance(a, float):
-        return sqrt(a) # type: ignore
-    return a ** (1 / b)  # type: ignore
-
-
 def _hypotenuse(a: Optional[T], b: Optional[T]) -> Optional[T]:
     if a is None:
         return b
     if b is None:
         return a
     # if isinstance(a, Sequence) or isinstance(b, Sequence):
-    return sqrt(a**2 + b**2) # type: ignore
+    return sqrt(a**2 + b**2)  # type: ignore
 
 
 def _comparison(op: Callable[[T, T], bool]):
@@ -48,7 +41,7 @@ def _addsub(op: Callable, iop: Callable):
         if not isinstance(other, Variable):
             return Variable(op(self.value, other), self.uncertainty)
         return Variable(op(self.value, other.value),
-                     _hypotenuse(self.uncertainty, other.uncertainty))
+                        _hypotenuse(self.uncertainty, other.uncertainty))
 
     def __iop(self: 'Variable', other: 'Variable'):
         if not isinstance(other, Variable):
@@ -66,29 +59,29 @@ def _muldiv(op: Callable, iop: Callable):
 
     def __op(self: 'Variable', other: 'Variable'):
         if not isinstance(other, Variable):
-            return Variable(op(self.value, other), op(self.uncertainty, abs(other)))
-        new_value = op(self.value, other.value)
-        new_uncertainty = new_value * \
-            _hypotenuse(self.uncertainty / self.value,
-                        other.uncertainty / other.value)
-        return Variable(new_value, new_uncertainty)
+            return Variable(op(self.value, other), None if self.is_exact()
+                            else op(self.uncertainty, other))
+        new_var = Variable(op(self.value, other.value))
+        new_var.relative_uncertainty = _hypotenuse(
+            self.relative_uncertainty, other.relative_uncertainty)
+        return new_var
 
     def __iop(self: 'Variable', other: 'Variable'):
         if not isinstance(other, Variable):
             self._value = iop(self.value, other)
-            self._uncertainty = op(self.uncertainty, abs(other))
+            self._uncertainty = None if self.is_exact() \
+                else op(self.uncertainty, abs(other))
             return self
         self._value = iop(self.value, other.value)
-        self._uncertainty = self.value * \
-            _hypotenuse(self.uncertainty / self.value,
-                        other.uncertainty / other.value)
+        self.relative_uncertainty = _hypotenuse(
+            self.relative_uncertainty, other.relative_uncertainty)
         return self
 
     def __rop(self: 'Variable', other):
         '''when other is not a `Value` object.'''
         new_value = op(other, self.value)
-        new_uncertainty = abs(new_value / self.value) * self.uncertainty
-        return Variable(new_value, new_uncertainty)
+        return Variable(new_value, None if self.is_exact() else
+                        new_value * self.relative_uncertainty)
 
     return __op, __iop, __rop
 
@@ -103,27 +96,33 @@ class Variable(Generic[T]):
     @property
     def value(self) -> T: return self._value
     @property
-    def uncertainty(self) -> Optional[T]: return self._uncertainty
+    def uncertainty(self) -> T | None: return self._uncertainty
 
     @uncertainty.setter
-    def uncertainty(self, uncertainty: Optional[T]):
+    def uncertainty(self, uncertainty: Optional[T]) -> None:
         if uncertainty is None:
             self._uncertainty = None
             return
         if not isinstance(uncertainty, type(self.value)):
             raise TypeError("value and uncertainty must have the same type.")
-        if isinstance(uncertainty, Sequence):
-            if any(u < 0 for u in uncertainty):
-                raise ValueError("uncertainty must be positive.")
-        elif uncertainty < 0:
-            raise ValueError("uncertainty must be positive.")
-        self._uncertainty = uncertainty
+        self._uncertainty = abs(uncertainty)
+
+    @property
+    def relative_uncertainty(self) -> T | None:
+        return None if self.is_exact() else self.uncertainty / self.value
+
+    @relative_uncertainty.setter
+    def relative_uncertainty(self, rel_unc: Optional[T]) -> None:
+        if rel_unc is None:
+            self._uncertainty = None
+            return
+        self.uncertainty = self.value * rel_unc
 
     @property
     def confidence_interval(self) -> Interval[T]:
         if self.uncertainty is None:
             return Interval(self.value, self.value)
-        return Interval(self.value - self.uncertainty, self.value + self.uncertainty)
+        return Interval.neighborhood(self.value, self.uncertainty)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({repr(self.value)}, " \
@@ -143,8 +142,7 @@ class Variable(Generic[T]):
             pass
         return f'{self.value:{format_spec}} ± {self.uncertainty:{format_spec}}'
 
-    def is_exact(self) -> bool:
-        return self.uncertainty is None
+    def is_exact(self) -> bool: return self.uncertainty is None
 
     def copy(self) -> 'Variable':
         return Variable(copy(self.value), copy(self.uncertainty))
@@ -177,20 +175,19 @@ class Variable(Generic[T]):
         operator.truediv, operator.itruediv)
 
     def __pow__(self, other: T):
-        new_value = self.value ** other
-        new_uncertainty = new_value * self.uncertainty / self.value
-        return Variable(new_value, new_uncertainty)
+        new_var = Variable(self.value ** other)
+        if self.is_exact():
+            return new_var
+        new_var.relative_uncertainty = other * self.relative_uncertainty
+        return new_var
 
     def __ipow__(self, other: T):
-        old_value = copy(self._value)
+        if self.is_exact():
+            self._value **= other
+            return self
+        old_value = copy(self.value)
         self._value **= other
-        self.uncertainty *= self.value * other / old_value
+        self._uncertainty *= self.value * other / old_value
         return self
 
     def __rpow__(self, other): return other ** self.value
-
-    def nthroot(self, n: int):
-        '''n-th root of Value. e.g. square root when n = 2.'''
-        value = _nthroot(self._value, n)
-        uncertainty = self.uncertainty * value / (n * self.value)
-        return Variable(value, uncertainty)

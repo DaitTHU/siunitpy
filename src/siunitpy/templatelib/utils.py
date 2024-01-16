@@ -2,12 +2,11 @@ import operator
 from decimal import Decimal
 from fractions import Fraction
 from math import sqrt
-from typing import Callable, Iterable, TypeVar
+from typing import Callable, Iterable, TypeVar, Optional
 
 __all__ = [
     'unzip', 'common_rational',
     '_inplace', '_sum', '_prod', '_first',
-    '_nthroot', '_hypotenuse'
 ]
 
 T, S = TypeVar('T'), TypeVar('S')
@@ -64,19 +63,3 @@ def _first(iterable: Iterable[T], default: T) -> T:
     for item in iterable:
         return item
     return default
-
-
-def _nthroot(a: T, b) -> T:
-    '''same as a ** (1/b).'''
-    if b == 2 and isinstance(a, float):
-        return sqrt(a)
-    return a ** (1 / b) # type: ignore
-
-
-def _hypotenuse(a: float, b: float) -> float:
-    if a == 0:
-        return b
-    if b == 0:
-        return a
-    return sqrt(a**2 + b**2)
-

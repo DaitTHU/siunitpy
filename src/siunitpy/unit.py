@@ -133,7 +133,9 @@ class Unit:
         return self._elements == other._elements
 
     def parallel(self, other: 'Unit', /, *, assertTrue=False) -> bool:
-        '''if assertTrue, raise Error when dimension unparallel.'''
+        '''parallel means dimension is the same
+        if assertTrue, raise Error when dimension unparallel.
+        '''
         try:
             if self.dimension == other.dimension:
                 return True

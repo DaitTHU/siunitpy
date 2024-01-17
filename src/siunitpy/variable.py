@@ -1,4 +1,3 @@
-import numbers
 import operator
 from copy import copy
 from math import sqrt
@@ -8,7 +7,7 @@ from .templatelib import Interval, Linear
 
 __all__ = ['Variable']
 
-T = TypeVar('T', bound=Linear)
+T = TypeVar('T')
 
 
 def _hypotenuse(a: Optional[T], b: Optional[T]) -> Optional[T]:

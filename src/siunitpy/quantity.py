@@ -3,14 +3,14 @@ from copy import copy
 from typing import Callable, Generic, Iterable, TypeVar
 
 from .dimension import Dimension
+from .templatelib import Linear
 from .unit import Unit, UnitDimensionError
 from .unitconst import UnitConst
 from .variable import Variable
-from .templatelib import Linear
 
 __all__ = ['Quantity']
 
-T = TypeVar('T', bound=Linear)
+T = TypeVar('T')
 
 
 def _comparison(op: Callable[[float, float], bool]):
@@ -106,7 +106,7 @@ class Quantity(Generic[T]):
         if not isinstance(unit, (str, Unit)):
             raise TypeError(f"{type(unit) = } is not 'str' or 'Unit'.")
         if isinstance(value, Variable):
-            self._variable = value
+            self._variable: Variable[T] = value  # ignore the 3rd arg
         else:
             self._variable = Variable(value, uncertainty)
         self._unit = Unit.move(unit)
@@ -117,13 +117,13 @@ class Quantity(Generic[T]):
     @property
     def variable(self) -> Variable[T]: return self._variable
     @property
-    def value(self) -> T: return self._variable.value
+    def value(self) -> T: return self.variable.value
     @property
-    def uncertainty(self) -> T | None: return self._variable.uncertainty
+    def uncertainty(self) -> T | None: return self.variable.uncertainty
     @property
     def unit(self) -> Unit: return self._unit
     @property
-    def dimension(self) -> Dimension: return self._unit.dimension
+    def dimension(self) -> Dimension: return self.unit.dimension
 
     def __repr__(self) -> str:
         return self.__class__.__name__ \

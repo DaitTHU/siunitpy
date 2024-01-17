@@ -4,7 +4,7 @@ from templatelib import Interval, Linear
 
 __all__ = ['Variable']
 
-T, S = TypeVar('T', bound=Linear), TypeVar('S', bound=Linear)
+T = TypeVar('T')
 
 
 class Variable(Generic[T]):

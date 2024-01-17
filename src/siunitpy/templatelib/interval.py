@@ -4,7 +4,7 @@ from .linear import Linear
 
 __all__ = ['Interval']
 
-T = TypeVar('T', bound=Linear)
+T = TypeVar('T')
 
 
 class Interval(Generic[T]):

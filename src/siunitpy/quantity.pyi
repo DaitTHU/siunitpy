@@ -1,8 +1,10 @@
 from typing import Generic, TypeVar, overload
 
 from .dimension import Dimension
+from .templatelib import Linear
 from .unit import Unit
 from .unitconst import UnitConst
+from .variable import Variable
 
 __all__ = ['Quantity']
 
@@ -25,10 +27,15 @@ class Quantity(Generic[T]):
     >>> Quantity('m')
     >>> Quantity(1.6e-19, 'C')
     '''
-
-    def __init__(self, value: T, /, unit: str | Unit = UnitConst.DIMENSIONLESS,
-                 uncertainty: T = 0):
+    @overload
+    def __init__(self, value: T, /,
+                 unit: str | Unit = UnitConst.DIMENSIONLESS,
+                 uncertainty: T | None = None):
         '''set value, unit, and uncertainty.'''
+    @overload
+    def __init__(self, variable: Variable[T], /,
+                 unit: str | Unit = UnitConst.DIMENSIONLESS):
+        '''set variable and unit.'''
     @classmethod
     def one(cls, unit: str | Unit) -> Quantity[int]: ...
     @property
@@ -47,26 +54,35 @@ class Quantity(Generic[T]):
     def copy(self) -> Quantity: ...
     def to(self, new_unit: str | Unit, *, assertDimension=True): ...
     def ito(self, new_unit: str | Unit, *, assertDimension=True): ...
-    def deprefix_unit(self) -> Quantity[T]: 
+
+    def deprefix_unit(self) -> Quantity[T]:
         '''remove the prefix of the unit.'''
-    def ideprefix_unit(self) -> Quantity[T]: 
+
+    def ideprefix_unit(self) -> Quantity[T]:
         '''inplace remove the prefix of the unit.'''
-    def to_basic_unit(self) -> Quantity[T]: 
+
+    def to_basic_unit(self) -> Quantity[T]:
         '''transform unit to the combination of `_BASIC_SI` unit with 
         the same dimension.
         '''
-    def ito_basic_unit(self) -> Quantity[T]: 
+
+    def ito_basic_unit(self) -> Quantity[T]:
         '''inplace `to_basic_unit()`'''
+
     def simplify_unit(self) -> Quantity[T]:
         '''try if the complex unit can be simplified as u, u⁻¹, u², u⁻², 
         where u represents a single `_BASIC_SI` unit. 
         '''
+
     def isimplify_unit(self) -> Quantity[T]:
         '''inplace `simplify_unit()`'''
-    def addable(self, other: Quantity, /, *, assertTrue=False) -> bool: 
+
+    def addable(self, other: Quantity, /, *, assertTrue=False) -> bool:
         '''check if self is addable with other, i.e. same dimension.'''
+
     def remove_uncertainty(self) -> Quantity[T]:
         '''set uncertainty zero.'''
+
     def __eq__(self, other: Quantity[T]) -> bool: ...
     def __ne__(self, other: Quantity[T]) -> bool: ...
     def __gt__(self, other: Quantity[T]) -> bool: ...
@@ -97,4 +113,3 @@ class Quantity(Generic[T]):
     def __rtruediv__(self, other: T | Quantity[T]) -> Quantity[T]: ...
     def __rpow__(self, other) -> Quantity[T]: ...
     def nthroot(self, n: int) -> Quantity[T]: ...
-    

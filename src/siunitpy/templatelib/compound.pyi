@@ -1,5 +1,5 @@
 from fractions import Fraction
-from typing import Generic, Iterator, Iterable, TypeVar, overload
+from typing import Generic, Iterable, Iterator, TypeVar, overload
 
 K = TypeVar('K')
 

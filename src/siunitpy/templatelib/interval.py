@@ -1,8 +1,10 @@
 from typing import Generic, TypeVar
 
+from .ordinal import Cardinal
+
 __all__ = ['Interval']
 
-T = TypeVar('T')
+T = TypeVar('T', bound=Cardinal)
 
 
 class Interval(Generic[T]):

@@ -76,10 +76,10 @@ class ContinuedFraction:
     __slots__ = ('_coefficients',)
 
     def __init__(self, coefficients: Fraction | Iterable[int],
-                 *, _move_tuple: bool = False) -> None:
+                 *, copy_tuple: bool = True) -> None:
         if isinstance(coefficients, Fraction):
             coefficients = _frac2cfrac(coefficients)
-        elif _move_tuple and isinstance(coefficients, tuple):
+        elif not copy_tuple and isinstance(coefficients, tuple):
             self._coefficients = coefficients
             return
         self._coefficients = tuple(coefficients)
@@ -96,43 +96,42 @@ class ContinuedFraction:
 
     def __repr__(self) -> str:
         return self.__class__.__name__ \
-            + repr(self._coefficients).replace(',', ';', 1)
+            + repr(self.coefficients).replace(',', ';', 1)
 
     def __str__(self) -> str:
-        return ' + 1/'.join(map(str, self._coefficients))
+        return ' + 1/'.join(map(str, self.coefficients))
 
-    def __len__(self) -> int: return len(self._coefficients)
+    def __len__(self) -> int: return len(self.coefficients)
 
-    def __iter__(self) -> Iterator[int]: return iter(self._coefficients)
+    def __iter__(self) -> Iterator[int]: return iter(self.coefficients)
 
-    def __hash__(self) -> int: return hash(self._coefficients)
+    def __hash__(self) -> int: return hash(self.coefficients)
 
-    def __getitem__(self, i: SupportsIndex): return self._coefficients[i]
+    def __getitem__(self, i: SupportsIndex): return self.coefficients[i]
 
     def __eq__(self, other) -> bool:
         if isinstance(other, ContinuedFraction):
-            return self._coefficients == other._coefficients
+            return self.coefficients == other.coefficients
         raise TypeError(f"comparing ContinuedFraction with {type(other)}.")
 
-    def __int__(self) -> int: return self._coefficients[0]
+    def __int__(self) -> int: return self.coefficients[0]
 
     def truncate(self, end_index: SupportsIndex):
-        return ContinuedFraction(self._coefficients[:end_index],
-                                 _move_tuple=True)
+        return ContinuedFraction(self.coefficients[:end_index], copy_tuple=False)
 
     def to_fraction(self) -> Fraction:
         p, q = 0, 1
-        for coef in reversed(self._coefficients):
+        for coef in reversed(self.coefficients):
             p, q = q, coef * q + p
         return Fraction(q, p)  # reverse again at last
 
     def reciprocal(self):
         '''get 1/fraction.'''
-        coef = self._coefficients[1:] if self._coefficients[0] == 0 \
-            else (0,) + self._coefficients
-        return ContinuedFraction(coef, _move_tuple=True)
+        coef = self.coefficients[1:] if self.coefficients[0] == 0 \
+            else (0,) + self.coefficients
+        return ContinuedFraction(coef, copy_tuple=False)
 
-    def represente(self, width: int | None = None) -> None:
+    def represent(self, width: int = -1) -> None:
         '''print
 
         a0 + _________1__________
@@ -140,12 +139,12 @@ class ContinuedFraction:
                   a2 + ____1_____
                        ... + 1/an
         '''
-        if len(self._coefficients) <= 1:
-            return print(self._coefficients[0])
-        cstrs = [str(c) + ' + ' for c in self._coefficients[:-1]]
-        cstrs[-1] += '1/' + str(self._coefficients[-1])
-        clens = list(accumulate(map(len, cstrs)))
-        width = clens[-1] if width is None else width
-        for cstr, clen in zip(cstrs, clens):
-            fline = f'{1:_^{clens[-1] - clen}}'
-            print((cstr + fline if len(fline) > 1 else cstr).rjust(width))
+        if len(self.coefficients) <= 1:
+            return print(self.coefficients[0])
+        coefs = [str(c) + ' + ' for c in self.coefficients[:-1]]
+        coefs[-1] += '1/' + str(self.coefficients[-1])
+        clens = list(accumulate(map(len, coefs)))
+        width = max(width, clens[-1])
+        for coef, clen in zip(coefs, clens):
+            line = f'{1:_^{clens[-1] - clen}}'
+            print((coef + line if len(line) > 1 else coef).rjust(width))

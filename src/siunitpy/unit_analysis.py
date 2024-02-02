@@ -25,10 +25,10 @@ from fractions import Fraction
 
 from .dimension import Dimension
 from .dimensionconst import DimensionConst
-from .templatelib import Compound, Vector
-from .templatelib.utils import _prod, _sum, unzip
-from .unit_data import (
-    _PREFIX_FACTOR, _SPECIAL_DIMENSIONLESS, _SUPERSCRIPT, _UNITS)
+from .unit_data import (_PREFIX_FACTOR, _SPECIAL_DIMENSIONLESS, _SUPERSCRIPT,
+                        _UNITS)
+from .utilecollections import Compound
+from .utilecollections.utils import _prod, _sum, unzip
 
 __all__ = ['_resolve', '_combine', '_deprefix']
 

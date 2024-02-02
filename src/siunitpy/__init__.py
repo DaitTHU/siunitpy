@@ -1,6 +1,6 @@
 __version__ = (0, 1)
 
-from . import SI, templatelib
+from . import SI, utilecollections
 from .constant import Constant
 from .dimension import Dimension
 from .dimensionconst import DimensionConst

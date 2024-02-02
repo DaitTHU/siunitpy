@@ -1,10 +1,13 @@
-from typing import Generic, Optional, TypeVar, Any
+from typing import Any, Generic, Optional, TypeVar
 
-from templatelib import Interval, Linear
+from utilecollections import Interval
+from utilecollections.abc import Linear
 
 __all__ = ['Variable']
 
-T = TypeVar('T', bound=Linear[Any, Any])
+T = TypeVar('T', bound=Linear)
+T_co = TypeVar('T_co', bound=Linear, covariant=True)
+T_contra = TypeVar('T_contra', bound=Linear, contravariant=True)
 
 
 class Variable(Generic[T]):
@@ -17,11 +20,11 @@ class Variable(Generic[T]):
     @property
     def uncertainty(self) -> T | None: ...
     @uncertainty.setter
-    def uncertainty(self, uncertainty: Optional[T]) -> None: ...
+    def uncertainty(self, uncertainty: T | None) -> None: ...
     @property
     def relative_uncertainty(self) -> T | None: ...
     @relative_uncertainty.setter
-    def relative_uncertainty(self, rel_unc: Optional[T]) -> None: ...
+    def relative_uncertainty(self, rel_unc: T | None) -> None: ...
     @property
     def confidence_interval(self) -> Interval[T]: ...
     def __repr__(self) -> str: ...

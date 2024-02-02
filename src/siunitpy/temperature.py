@@ -2,9 +2,9 @@ from fractions import Fraction
 from typing import TypeVar, overload
 
 from .quantity import Quantity
-from .templatelib.constclass import ConstClass
 from .unit import Unit
 from .unitconst import UnitConst
+from .utilecollections.constclass import ConstClass
 
 __all__ = ['Temperature', 'degree']
 

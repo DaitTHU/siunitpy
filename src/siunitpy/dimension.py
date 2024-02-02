@@ -4,7 +4,7 @@ import operator
 from fractions import Fraction
 from typing import Callable, Iterable, SupportsIndex
 
-from .templatelib.utils import _inplace, common_rational
+from .utilecollections.utils import _inplace, common_rational
 
 __all__ = ['Dimension']
 

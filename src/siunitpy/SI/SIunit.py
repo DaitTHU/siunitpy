@@ -1,6 +1,6 @@
-from ..templatelib.constclass import ConstClass
-from ..unitconst import UnitConst
 from ..constant import Constant
+from ..unitconst import UnitConst
+from ..utilecollections.constclass import ConstClass
 
 __all__ = ['si']
 

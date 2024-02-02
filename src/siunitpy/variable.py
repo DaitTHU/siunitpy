@@ -1,26 +1,35 @@
 import operator
+import sys
 from copy import copy
 from math import sqrt
-from typing import Callable, Generic, Optional, Sequence, TypeVar
+from typing import Any, Callable, Generic, Optional, Sequence, TypeVar
 
-from .templatelib import Interval, Linear
+from .utilecollections import Interval
+from .utilecollections.abc import Linear
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    Self = TypeVar('Self', bound='Variable')
 
 __all__ = ['Variable']
 
-T = TypeVar("T", bound=Linear)
+T = TypeVar("T", bound=Linear[Any, Any])
 
 
-def _hypotenuse(a: Optional[T], b: Optional[T]) -> Optional[T]:
+def _hypotenuse(a: T | None, b: T | None) -> T | None:
+    '''TODO: add np.ndarray()'''
     if a is None:
         return b
     if b is None:
         return a
-    # if isinstance(a, Sequence) or isinstance(b, Sequence):
-    return sqrt(a**2 + b**2)  # type: ignore
+    if isinstance(a, float) and isinstance(b, float):
+        return sqrt(a**2 + b**2) # type: ignore
+    return None
 
 
 def _comparison(op: Callable[[T, T], bool]):
-    def __op(self, other):
+    def __op(self: 'Variable', other):
         if not isinstance(other, Variable):
             return op(self.value, other)
         return op(self.value, other.value)
@@ -119,6 +128,7 @@ class Variable(Generic[T]):
 
     @property
     def confidence_interval(self) -> Interval[T]:
+        # if not isinstance(self.value, )
         if self.uncertainty is None:
             return Interval(self.value, self.value)
         return Interval.neighborhood(self.value, self.uncertainty)

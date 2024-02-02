@@ -1,11 +1,11 @@
 import operator
 from copy import copy
-from typing import Callable, Generic, TypeVar, Any
+from typing import Any, Callable, Generic, TypeVar
 
 from .dimension import Dimension
-from .templatelib import Linear
 from .unit import Unit, UnitDimensionError
 from .unitconst import UnitConst
+from .utilecollections.abc import Linear
 from .variable import Variable
 
 __all__ = ['Quantity']

@@ -1,6 +1,6 @@
-from .templatelib.utils import _first
 from .dimension import Dimension
 from .dimensionconst import DimensionConst
+from .utilecollections.utils import _first
 
 __all__ = [
     '_PI', '_WEIN_ZERO',

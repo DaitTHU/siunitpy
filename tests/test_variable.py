@@ -2,7 +2,7 @@ import sys
 import unittest
 
 from src.siunitpy import Variable
-from src.siunitpy.templatelib import Interval
+from src.siunitpy.utilecollections import Interval
 
 
 @unittest.skipIf(sys.version_info < (3, 9), 'only support 3.9+.')

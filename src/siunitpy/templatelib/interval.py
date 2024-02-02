@@ -1,7 +1,5 @@
 from typing import Generic, TypeVar
 
-from .linear import Linear
-
 __all__ = ['Interval']
 
 T = TypeVar('T')

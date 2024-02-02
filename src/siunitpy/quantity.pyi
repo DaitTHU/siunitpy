@@ -8,7 +8,7 @@ from .variable import Variable
 
 __all__ = ['Quantity']
 
-T = TypeVar('T')
+T = TypeVar('T', bound=Linear)
 
 
 class Quantity(Generic[T]):
@@ -30,14 +30,16 @@ class Quantity(Generic[T]):
     @overload
     def __init__(self, value: T, /,
                  unit: str | Unit = UnitConst.DIMENSIONLESS,
-                 uncertainty: T | None = None):
+                 uncertainty: T | None = None) -> None:
         '''set value, unit, and uncertainty.'''
     @overload
     def __init__(self, variable: Variable[T], /,
-                 unit: str | Unit = UnitConst.DIMENSIONLESS):
+                 unit: str | Unit = UnitConst.DIMENSIONLESS) -> None:
         '''set variable and unit.'''
     @classmethod
     def one(cls, unit: str | Unit) -> Quantity[int]: ...
+    @property
+    def variable(self) -> Variable[T]: ...
     @property
     def value(self) -> T: ...
     @property
@@ -52,8 +54,12 @@ class Quantity(Generic[T]):
     def is_exact(self) -> bool: ...
     def is_dimensionless(self) -> bool: ...
     def copy(self) -> Quantity: ...
-    def to(self, new_unit: str | Unit, *, assertDimension=True): ...
-    def ito(self, new_unit: str | Unit, *, assertDimension=True): ...
+
+    def to(self, new_unit: str | Unit, *,
+           assertDimension=True) -> Quantity[T]: ...
+
+    def ito(self, new_unit: str | Unit, *,
+            assertDimension=True) -> Quantity[T]: ...
 
     def deprefix_unit(self) -> Quantity[T]:
         '''remove the prefix of the unit.'''

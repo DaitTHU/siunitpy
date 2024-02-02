@@ -1,6 +1,6 @@
 import operator
 from copy import copy
-from typing import Callable, Generic, Iterable, TypeVar
+from typing import Callable, Generic, TypeVar, Any
 
 from .dimension import Dimension
 from .templatelib import Linear
@@ -10,7 +10,7 @@ from .variable import Variable
 
 __all__ = ['Quantity']
 
-T = TypeVar('T')
+T = TypeVar('T', bound=Linear[Any, Any])
 
 
 def _comparison(op: Callable[[float, float], bool]):

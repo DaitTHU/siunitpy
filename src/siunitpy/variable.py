@@ -7,7 +7,7 @@ from .templatelib import Interval, Linear
 
 __all__ = ['Variable']
 
-T = TypeVar('T')
+T = TypeVar("T", bound=Linear)
 
 
 def _hypotenuse(a: Optional[T], b: Optional[T]) -> Optional[T]:

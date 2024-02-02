@@ -1,4 +1,4 @@
-from typing import TypeVar, Protocol, runtime_checkable
+from typing import Protocol, TypeVar, runtime_checkable
 
 __all__ = ['Ordinal', 'Cardinal']
 

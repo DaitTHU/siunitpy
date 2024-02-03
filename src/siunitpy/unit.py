@@ -7,8 +7,8 @@ from .dimension import Dimension
 from .dimensionconst import DimensionConst
 from .unit_analysis import _combine, _deprefix, _resolve
 from .unit_data import _BASIC_SI, _UNIT_STD
-from .utilecollections.compound import Compound
-from .utilecollections.utils import _inplace
+from .utilcollections.compound import Compound
+from .utilcollections.utils import _inplace
 
 __all__ = ['Unit', 'UnitDimensionError', '_DIMENSIONLESS_UNIT']
 

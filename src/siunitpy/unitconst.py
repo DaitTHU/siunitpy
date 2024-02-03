@@ -1,5 +1,5 @@
 from .unit import _DIMENSIONLESS_UNIT, Unit
-from .utilecollections.constclass import ConstClass
+from .utilcollections.constclass import ConstClass
 
 __all__ = ['UnitConst']
 

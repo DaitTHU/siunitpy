@@ -5,7 +5,7 @@ from typing import Any, Callable, Generic, TypeVar
 from .dimension import Dimension
 from .unit import Unit, UnitDimensionError
 from .unitconst import UnitConst
-from .utilecollections.abc import Linear
+from .utilcollections.abc import Linear
 from .variable import Variable
 
 __all__ = ['Quantity']

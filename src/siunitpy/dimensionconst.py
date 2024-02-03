@@ -1,5 +1,5 @@
 from .dimension import Dimension
-from .utilecollections.constclass import ConstClass
+from .utilcollections.constclass import ConstClass
 
 __all__ = ['DimensionConst']
 

@@ -1,7 +1,7 @@
 from typing import Any, Generic, Optional, TypeVar
 
-from utilecollections import Interval
-from utilecollections.abc import Linear
+from utilcollections import Interval
+from utilcollections.abc import Linear
 
 __all__ = ['Variable']
 

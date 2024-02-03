@@ -1,7 +1,7 @@
 import sys
 import unittest
 
-from src.siunitpy.utilecollections import Vector
+from src.siunitpy.utilcollections import Vector
 
 
 @unittest.skipIf(sys.version_info < (3, 9), 'only support 3.9+.')

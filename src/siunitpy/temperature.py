@@ -4,7 +4,7 @@ from typing import TypeVar, overload
 from .quantity import Quantity
 from .unit import Unit
 from .unitconst import UnitConst
-from .utilecollections.constclass import ConstClass
+from .utilcollections.constclass import ConstClass
 
 __all__ = ['Temperature', 'degree']
 

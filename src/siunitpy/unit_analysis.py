@@ -27,8 +27,8 @@ from .dimension import Dimension
 from .dimensionconst import DimensionConst
 from .unit_data import (_PREFIX_FACTOR, _SPECIAL_DIMENSIONLESS, _SUPERSCRIPT,
                         _UNITS)
-from .utilecollections import Compound
-from .utilecollections.utils import _prod, _sum, unzip
+from .utilcollections import Compound
+from .utilcollections.utils import _prod, _sum, unzip
 
 __all__ = ['_resolve', '_combine', '_deprefix']
 

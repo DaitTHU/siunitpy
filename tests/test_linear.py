@@ -3,7 +3,7 @@ import unittest
 from decimal import Decimal
 from fractions import Fraction
 
-from src.siunitpy.utilecollections.abc import Linear
+from src.siunitpy.utilcollections.abc import Linear
 
 
 @unittest.skipIf(sys.version_info < (3, 9), 'only support 3.9+.')

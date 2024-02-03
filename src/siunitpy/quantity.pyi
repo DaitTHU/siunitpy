@@ -3,7 +3,7 @@ from typing import Generic, TypeVar, overload
 from .dimension import Dimension
 from .unit import Unit
 from .unitconst import UnitConst
-from .utilecollections.abc import Linear
+from .utilcollections.abc import Linear
 from .variable import Variable
 
 __all__ = ['Quantity']

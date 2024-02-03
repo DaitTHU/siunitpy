@@ -1,6 +1,6 @@
 from ..constant import Constant, constant
 from ..unit_data import _PI, _WEIN_ZERO
-from ..utilecollections.constclass import ConstClass
+from ..utilcollections.constclass import ConstClass
 from .SIunit import si
 
 __all__ = ['SI']

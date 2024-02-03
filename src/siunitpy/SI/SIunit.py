@@ -1,6 +1,6 @@
 from ..constant import Constant
 from ..unitconst import UnitConst
-from ..utilecollections.constclass import ConstClass
+from ..utilcollections.constclass import ConstClass
 
 __all__ = ['si']
 

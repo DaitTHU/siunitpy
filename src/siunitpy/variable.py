@@ -4,8 +4,8 @@ from copy import copy
 from math import sqrt
 from typing import Any, Callable, Generic, Optional, Sequence, TypeVar
 
-from .utilecollections import Interval
-from .utilecollections.abc import Linear
+from .utilcollections import Interval
+from .utilcollections.abc import Linear
 
 if sys.version_info >= (3, 11):
     from typing import Self

@@ -5,7 +5,7 @@ from math import sqrt
 from typing import Any, Callable, Generic, Optional, Sequence, TypeVar
 
 from .utilcollections import Interval
-from .utilcollections.abc import Linear
+from .utilcollections.abc import Linear, Cardinal
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -14,7 +14,7 @@ else:
 
 __all__ = ['Variable']
 
-T = TypeVar("T", bound=Linear[Any, Any])
+T = TypeVar('T', bound=Linear[Any, Any])
 
 
 def _hypotenuse(a: T | None, b: T | None) -> T | None:
@@ -24,7 +24,7 @@ def _hypotenuse(a: T | None, b: T | None) -> T | None:
     if b is None:
         return a
     if isinstance(a, float) and isinstance(b, float):
-        return sqrt(a**2 + b**2) # type: ignore
+        return sqrt(a**2 + b**2)  # type: ignore
     return None
 
 
@@ -127,11 +127,12 @@ class Variable(Generic[T]):
         self.uncertainty = self.value * rel_unc
 
     @property
-    def confidence_interval(self) -> Interval[T]:
-        # if not isinstance(self.value, )
+    def confidence_interval(self) -> Interval[T]:  # type: ignore
+        if not issubclass(type[T], Cardinal):
+            raise TypeError('interval ends must be cardinal.')
         if self.uncertainty is None:
             return Interval(self.value, self.value)
-        return Interval.neighborhood(self.value, self.uncertainty)
+        return Interval.neighborhood(self.value, self.uncertainty)  # type: ignore
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({repr(self.value)}, " \
@@ -162,8 +163,8 @@ class Variable(Generic[T]):
     def same_as(self, other: 'Variable') -> bool:
         return self.value == other.value and self.uncertainty == other.uncertainty
 
-    __eq__ = _comparison(operator.eq)
-    __ne__ = _comparison(operator.ne)
+    __eq__ = _comparison(operator.eq)  # type: ignore
+    __ne__ = _comparison(operator.ne)  # type: ignore
     __gt__ = _comparison(operator.gt)
     __lt__ = _comparison(operator.lt)
     __ge__ = _comparison(operator.ge)

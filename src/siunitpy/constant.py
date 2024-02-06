@@ -1,13 +1,14 @@
 import operator
-from typing import NoReturn, TypeVar
+from typing import Any, NoReturn, TypeVar
 
 from .quantity import Quantity
 from .unit import Unit
+from .utilcollections.abc import Linear
 from .utilcollections.utils import _inplace
 
 __all__ = ['Constant', 'constant']
 
-T = TypeVar('T')
+T = TypeVar('T', bound=Linear[Any, Any])
 
 
 class Constant(Quantity[T]):
@@ -23,13 +24,13 @@ class Constant(Quantity[T]):
     def isimplify_unit(self) -> NoReturn:
         raise AttributeError('itry_...() is deleted, please use try_...().')
 
-    __iadd__ = _inplace(operator.add)
-    __isub__ = _inplace(operator.sub)
-    __imul__ = _inplace(operator.mul)
-    __imatmul__ = _inplace(operator.matmul)
-    __itruediv__ = _inplace(operator.truediv)
-    __ifloordiv__ = _inplace(operator.floordiv)
-    __ipow__ = _inplace(operator.pow)
+    __iadd__ = _inplace(operator.add)  # type: ignore
+    __isub__ = _inplace(operator.sub)  # type: ignore
+    __imul__ = _inplace(operator.mul)  # type: ignore
+    __imatmul__ = _inplace(operator.matmul)  # type: ignore
+    __itruediv__ = _inplace(operator.truediv)  # type: ignore
+    __ifloordiv__ = _inplace(operator.floordiv)  # type: ignore
+    __ipow__ = _inplace(operator.pow)  # type: ignore
 
 
 def constant(quantity: Quantity[T]) -> Constant[T]:

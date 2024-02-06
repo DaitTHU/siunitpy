@@ -116,8 +116,10 @@ class Variable(Generic[T]):
         self._uncertainty = abs(uncertainty)
 
     @property
-    def relative_uncertainty(self) -> T | None:
-        return None if self.is_exact() else self.uncertainty / self.value
+    def relative_uncertainty(self):
+        if self.uncertainty is None or self.value == 0:
+            return None
+        return self.uncertainty / self.value
 
     @relative_uncertainty.setter
     def relative_uncertainty(self, rel_unc: Optional[T]) -> None:

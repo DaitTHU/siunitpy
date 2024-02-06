@@ -106,13 +106,13 @@ class Quantity(Generic[T]):
         if not isinstance(unit, (str, Unit)):
             raise TypeError(f"{type(unit) = } is not 'str' or 'Unit'.")
         if isinstance(value, Variable):
-            self._variable: Variable[T] = value  # ignore the 3rd arg
+            self._variable = value
         else:
             self._variable = Variable(value, uncertainty)
         self._unit = Unit.move(unit)
 
     @classmethod
-    def one(cls, unit: str | Unit): return cls(1, unit)
+    def one(cls, unit: str | Unit): return cls(1, unit)  # type: ignore
 
     @property
     def variable(self) -> Variable[T]: return self._variable

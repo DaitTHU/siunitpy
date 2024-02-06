@@ -130,7 +130,7 @@ class Variable(Generic[T]):
 
     @property
     def confidence_interval(self) -> Interval[T]:  # type: ignore
-        if not issubclass(type[T], Cardinal):
+        if not isinstance(self.value, Cardinal):
             raise TypeError('interval ends must be cardinal.')
         if self.uncertainty is None:
             return Interval(self.value, self.value)

@@ -15,7 +15,7 @@ class Ordinal(Protocol[T_co, T_contra]):
 
 
 @runtime_checkable
-class Cardinal(Ordinal[T_co, T_contra]):
+class Cardinal(Protocol[T_co, T_contra]):
     __slots__ = ()
     def __lt__(self, other: T_contra) -> bool: ...
     def __eq__(self, other: T_contra) -> bool: ...

@@ -2,11 +2,10 @@ import operator
 from decimal import Decimal
 from fractions import Fraction
 from math import sqrt
-from typing import Callable, Iterable, TypeVar, Optional
+from typing import Callable, Iterable, Optional, TypeVar
 
 __all__ = [
-    'unzip', 'common_rational',
-    '_inplace', '_sum', '_prod', '_first',
+    'unzip', '_inplace', '_sum', '_prod', '_first',
 ]
 
 T, S = TypeVar('T'), TypeVar('S')
@@ -23,13 +22,7 @@ def unzip(iterable: Iterable[tuple[T, S]]) -> tuple[tuple[T], tuple[S]]:
     return zip(*iterable)  # type: ignore
 
 
-def common_rational(number: int | float) -> Fraction:
-    '''CommonRational is common rational numbers, common means it's
-    integer or fraction with small numerator and denominator, like
-    1, -42, 2/3...
-    '''
-    frac = Fraction(number)
-    return frac.limit_denominator() if isinstance(number, float) else frac
+
 
 
 def _inplace(op: Callable[[T, S], T]) -> Callable[[T, S], T]:

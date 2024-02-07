@@ -44,8 +44,9 @@ class Dimension:
         '''
 
     @classmethod
-    def unpack(cls, iterable: Iterable[int | float | Fraction] | 
+    def unpack(cls, iterable: Iterable[int] |
                dict[Literal['L', 'M', 'T', 'I', 'H', 'N', 'J'], int], /) -> Dimension: ...
+
     def __getitem__(self, key: SupportsIndex) -> Fraction: ...
     def __iter__(self) -> Iterator[Fraction]: ...
     @property

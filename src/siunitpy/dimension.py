@@ -4,12 +4,21 @@ import operator
 from fractions import Fraction
 from typing import Callable, Iterable, SupportsIndex
 
-from .utilcollections.utils import _inplace, common_rational
+from .utilcollections.utils import _inplace
 
 __all__ = ['Dimension']
 
-_DIM_VAR = ('L', 'M', 'T', 'I', 'H', 'N', 'J')
+_DIM_VAR = 'LMTIHNJ'
 _DIM_NUM = len(_DIM_VAR)
+
+
+def common_rational(number: int | float) -> Fraction:
+    '''CommonRational is common rational numbers, common means it's
+    integer or fraction with small numerator and denominator, like
+    1, -42, 2/3...
+    '''
+    frac = Fraction(number)
+    return frac.limit_denominator() if isinstance(number, float) else frac
 
 
 def _unpack_vector():
@@ -20,7 +29,7 @@ def _unpack_vector():
 def _unary_op(op: Callable[[Fraction], Fraction]):
     '''unary operation: +v, -v.'''
 
-    def __op(self: 'Dimension') -> 'Dimension': 
+    def __op(self: 'Dimension') -> 'Dimension':
         return Dimension.unpack(map(op, self))
     return __op
 
@@ -49,7 +58,7 @@ class Dimension:
         self.__vector = tuple(map(common_rational, dimension_vector))
 
     @classmethod
-    def unpack(cls, iterable: dict | Iterable, /): 
+    def unpack(cls, iterable: dict | Iterable, /):
         if isinstance(iterable, dict):
             return cls(**iterable)
         return cls(*iterable)
@@ -84,14 +93,16 @@ class Dimension:
     __mul__, __imul__ = _scalar_mul(operator.mul)
     __rmul__ = __mul__
     __truediv__, __itruediv__ = _scalar_mul(operator.truediv)
-    
+
 
 if __name__ == '__main__':
-    a = '''length
+    a = '''
+    length
     mass
     time
     electric current
     thermodynamic temperature
     amount of substance
-    luminous intensity'''
+    luminous intensity
+    '''
     print(a.replace(' ', '_').upper())

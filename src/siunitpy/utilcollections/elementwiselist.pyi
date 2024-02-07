@@ -1,6 +1,5 @@
 import sys
-from typing import Any, Iterable, Sequence, SupportsIndex, TypeVar, overload
-
+from typing import Any, Iterable, SupportsIndex, TypeVar, overload
 
 __all__ = ['ElementWiseList']
 

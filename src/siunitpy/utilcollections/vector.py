@@ -1,45 +1,51 @@
 # TODO: optimize __setitem__ and __delitem_
 
-# from __future__ import annotations
-
 import operator
-from typing import Callable, Iterable, Sequence, TypeVar
+from typing import (Callable, Generator, Iterable, Sequence, SupportsIndex,
+                    TypeVar)
 
-__all__ = ['Vector', 'VectorMatchError']
+__all__ = ['ElementWiseList']
 
 T = TypeVar('T')
 
 
 def _unary(op: Callable):
-    '''unary operation: +v, -v, not v, ~v...'''
+    '''4 unary operation: +v, -v, not v, ~v'''
 
-    def __op(self): return Vector(op(x) for x in self)
+    def __op(self): return ElementWiseList(op(x) for x in self)
     return __op
+
+
+def _length_equal(left, right):
+    try:
+        return isinstance(right, Sequence) and len(left) == len(right)
+    except TypeError:
+        raise TypeError('object to operator must be sequence.')
 
 
 def _comparison(op: Callable):
     def __op(self, other):
-        if Vector.match_length(self, other):
-            return Vector(op(x, y) for x, y in zip(self, other))
+        if _length_equal(self, other):
+            return ElementWiseList(op(x, y) for x, y in zip(self, other))
         else:
-            return Vector(op(x, other) for x in self)
+            return ElementWiseList(op(x, other) for x in self)
     return __op
 
 
 def _binary(op: Callable):
     '''binary operation: all are elementwise
-    - comparison: v > u, v == 0... (return Vector, not bool)
+    - comparison: v > u, v == 0... (return ElementWiseList[bool], not bool)
     - other binary operation: v + u, 2 * v...
     '''
 
     def __op(self, other):
-        if Vector.match_length(self, other):
-            return Vector(op(x, y) for x, y in zip(self, other))
+        if _length_equal(self, other):
+            return ElementWiseList(op(x, y) for x, y in zip(self, other))
         else:
-            return Vector(op(x, other) for x in self)
+            return ElementWiseList(op(x, other) for x in self)
 
     def __iop(self, other):
-        if Vector.match_length(self, other):
+        if _length_equal(self, other):
             for i in range(len(self)):
                 self[i] = op(self[i], other[i])
         else:
@@ -48,59 +54,59 @@ def _binary(op: Callable):
         return self
 
     def __rop(self, other):
-        if Vector.match_length(self, other):
-            return Vector(op(y, x) for x, y in zip(self, other))
+        if len(self) == len(other):
+            return ElementWiseList(op(y, x) for x, y in zip(self, other))
         else:
-            return Vector(op(other, x) for x in self)
+            return ElementWiseList(op(other, x) for x in self)
 
     return __op, __iop, __rop
 
 
-class Vector(list[T]):
+class ElementWiseList(list[T]):
 
     def __init__(self, iterable: Iterable[T] = (), /) -> None:
-        '''Construct a `Vector`
+        '''Construct a `ElementWiseList`
 
-        If no argument is given, the constructor creates a new empty Vector:
-        >>> Vector()  # []
+        If no argument is given, the constructor creates a new empty List:
+        >>> ElementWiseList()  # []
 
         The argument must be an iterable if specified:
-        >>> Vector([0, 1, 2, 3])  # [0, 1, 2, 3] 
-        >>> Vector(range(4))      # [0, 1, 2, 3]
+        >>> ElementWiseList([0, 1, 2, 3])  # [0, 1, 2, 3] 
+        >>> ElementWiseList(range(4))      # [0, 1, 2, 3]
 
-        If you want to packup multiple non-iterable elements as a `Vector`, 
-        use classmethod `Vector.packup(*args)`:
-        >>> Vector.packup(0, 1, 2, 3)  # [0, 1, 2, 3]
+        If you want to packup multiple non-iterable elements, 
+        use classmethod `cls.packup(*args)`:
+        >>> ElementWiseList.packup(0, 1, 2, 3)  # [0, 1, 2, 3]
         '''
         super().__init__(iterable)
 
     @classmethod
-    def packup(cls, *args: T):
-        return cls(args)
+    def packup(cls, *args: T): return cls(args)
 
     def __getitem__(self, index):
+        cls = self.__class__
         getter = super().__getitem__
         # get item
-        if isinstance(index, int):
+        if isinstance(index, SupportsIndex):
             return getter(index)
-        # get sub-Vector
+        # get sub-sequence
         if isinstance(index, slice):
-            return Vector(getter(index))
+            return cls(getter(index))
         # not an index
         if not isinstance(index, Iterable):
             raise TypeError(f'Inappropriate index type: {type(index)}')
         # boolean indexing
         if all(isinstance(idx, bool) for idx in index):
-            return Vector(getter(i) for i, idx in enumerate(index) if idx)
+            return cls(getter(i) for i, idx in enumerate(index) if idx)
         # advanced indexing
-        return Vector(getter(idx) for idx in index)
+        return cls(getter(idx) for idx in index)
 
     def __setitem__(self, index, value):
         setter = super().__setitem__
         # set element
-        if isinstance(index, int):
+        if isinstance(index, SupportsIndex):
             return setter(index, value)
-        # set sub-Vector
+        # set sub-sequence
         if isinstance(index, slice):
             if isinstance(value, Iterable):
                 return setter(index, value)
@@ -110,6 +116,8 @@ class Vector(list[T]):
         # not an index
         if not isinstance(index, Iterable):
             raise TypeError(f'Inappropriate index type: {type(index)}')
+        elif isinstance(index, Generator):
+            index = tuple(index)
         # boolean indexing
         if all(isinstance(idx, bool) for idx in index):
             if isinstance(value, Iterable):
@@ -131,12 +139,14 @@ class Vector(list[T]):
 
     def __delitem__(self, index):
         killer = super().__delitem__
-        # delete item or sub-Vector
-        if isinstance(index, (int, slice)):
+        # delete item or sub-sequence
+        if isinstance(index, (SupportsIndex, slice)):
             return killer(index)
         # not an index
         if not isinstance(index, Iterable):
             raise TypeError(f'Inappropriate index type: {type(index)}')
+        elif isinstance(index, Generator):
+            index = tuple(index)
         # boolean indexing
         if all(isinstance(idx, bool) for idx in index):
             for i, idx in reversed(list(enumerate(index))):
@@ -149,14 +159,14 @@ class Vector(list[T]):
 
     @classmethod
     def cat(cls, left: Iterable, /, *rights):
-        '''concatenat Vectors, same as `sum(list)`'''
+        '''concatenat Lists, same as `sum(list)`'''
         result = list(left)
         for right in rights:
             result.extend(right)
         return cls(result)
 
     def repeat(self, repeat_time: int, /):
-        return Vector(super().__mul__(repeat_time))
+        return ElementWiseList(super().__mul__(repeat_time))
 
     def irepeat(self, repeat_time: int, /):
         '''inplacement repeat, same as `list` `*=`'''
@@ -165,55 +175,32 @@ class Vector(list[T]):
 
     def erepeat(self, repeat_time: int, /):
         '''element repeat, 
-        >>> Vector(range(2)).erepeat(3)
+        >>> ElementWiseList([0, 1]).erepeat(3)
         [0, 0, 0, 1, 1, 1]
         '''
-        return Vector(item for self_clone in zip(*([self] * repeat_time))
-                      for item in self_clone)
+        return self.__class__(item for self_clone in zip(*([self] * repeat_time))
+                              for item in self_clone)
 
-    @staticmethod
-    def zeros(length: int, /): return Vector([0]).irepeat(length)
+    @classmethod
+    def zeros(cls, length: int, /): return cls([0]).irepeat(length)
 
-    @staticmethod
-    def ones(length: int, /): return Vector([1]).irepeat(length)
+    @classmethod
+    def ones(cls, length: int, /): return cls([1]).irepeat(length)
 
-    def copy(self): return Vector(self)
+    def copy(self): return self.__class__(self)
 
     __pos__ = _unary(operator.pos)
     __neg__ = _unary(operator.neg)
     __not__ = _unary(operator.not_)
     __invert__ = _unary(operator.invert)
     __abs__ = _unary(operator.abs)
-
-    @staticmethod
-    def set_match_check(*, enable: bool) -> None:
-        '''If enabled, the match check mode will automatically check 
-        whether the two lengths are matched whenever the `Vector` are 
-        operated with the `Sequence`, and will raise `VectorMatchError`
-        if the lengths do not match.
-
-        If disabled, the check process will be omitted, but it may be
-        dangerous.
-        '''
-        VectorMatch._match_check = enable
-
-    @staticmethod
-    def match_length(left, right) -> bool:
-        '''see staticmethod Vector.set_match_check.'''
-        if not isinstance(right, Sequence):
-            return False
-        if VectorMatch._match_check and len(left) != len(right):
-            raise VectorMatchError(
-                f'Length ({len(left)}, {len(right)}) do not match.')
-        return True
-
     # comparison
-    __eq__ = _comparison(operator.eq)
-    __ne__ = _comparison(operator.ne)
-    __gt__ = _comparison(operator.gt)
-    __lt__ = _comparison(operator.lt)
-    __ge__ = _comparison(operator.ge)
-    __le__ = _comparison(operator.le)
+    __eq__ = _comparison(operator.eq)  # type: ignore
+    __ne__ = _comparison(operator.ne)  # type: ignore
+    __gt__ = _comparison(operator.gt)  # type: ignore
+    __lt__ = _comparison(operator.lt)  # type: ignore
+    __ge__ = _comparison(operator.ge)  # type: ignore
+    __le__ = _comparison(operator.le)  # type: ignore
     # operation
     __add__, __iadd__, __radd__ = _binary(operator.add)
     __sub__, __isub__, __rsub__ = _binary(operator.sub)
@@ -229,21 +216,3 @@ class Vector(list[T]):
     __xor__, __ixor__, __rxor__ = _binary(operator.xor)
     __lshift__, __ilshift__, __rlshift__ = _binary(operator.lshift)
     __rshift__, __irshift__, __rrshift__ = _binary(operator.rshift)
-
-    @staticmethod
-    def equal(left, right) -> bool:
-        '''since `v == u` returns a `Vector`, the `Vector.equal(v, u)` assumes 
-        the function of determining whether `v`, `u` are equal or not.
-        '''
-        for l, r in zip(left, right, strict=True):
-            if l != r:
-                return False
-        return True
-
-
-class VectorMatch:
-    _match_check = True
-
-
-class VectorMatchError(Exception):
-    pass

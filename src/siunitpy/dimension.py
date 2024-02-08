@@ -8,7 +8,7 @@ from .utilcollections.utils import _inplace
 
 __all__ = ['Dimension']
 
-_DIM_VAR = 'LMTIHNJ'
+_DIM_VAR = ('L', 'M', 'T', 'I', 'H', 'N', 'J')
 _DIM_NUM = len(_DIM_VAR)
 
 

@@ -112,8 +112,8 @@ class Unit:
         '''return a combination of `_BASIC_SI` unit with the same dimension, 
         whose value = 1, thus the factor is self.value.
         '''
-        elements = Compound(
-            {unit: e for unit, e in zip(_BASIC_SI, self.dimension) if e})
+        elements = Compound({unit: e for unit, e in \
+            zip(_BASIC_SI, self.dimension) if e}, move_dict=True)
         basic_unit = Unit(elements, self.dimension, 1)
         return basic_unit, self.value
 
@@ -129,7 +129,7 @@ class Unit:
         for (dim, symbol), expo in product(_UNIT_STD.items(), (-1, 2, -2)):
             if dim * expo != self.dimension:
                 continue
-            return Unit(Compound({symbol: Fraction(expo)}),
+            return Unit(Compound({symbol: Fraction(expo)}, move_dict=True),
                         self.dimension, self.value), self.value
         return self, 1
 

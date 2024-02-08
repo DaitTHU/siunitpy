@@ -2,10 +2,12 @@ import operator
 from decimal import Decimal
 from fractions import Fraction
 from math import sqrt
-from typing import Callable, Iterable, overload, TypeVar
+from typing import Callable, Iterable, TypeVar, overload
 
 __all__ = [
-    'superscript', 'unzip', '_inplace', '_sum', '_prod', 'firstof',
+    'superscript',
+    'unzip', 'firstof', 'neg_after',
+    '_inplace',
 ]
 
 T = TypeVar('T')
@@ -51,6 +53,17 @@ def unzip(iterable: Iterable):
     return tuple(zip(*iterable))
 
 
+def firstof(iterable: Iterable[T], /, default: T) -> T:
+    for item in iterable:
+        return item
+    return default
+
+
+def neg_after(ls: list, idx: int) -> None:
+    for i in range(len(ls))[idx + 1:]:
+        ls[i] = -ls[i]
+
+
 def _inplace(op: Callable[[T_1, T_2], T_1]) -> Callable[[T_1, T_2], T_1]:
     '''The easiest way to generate __iop__ using __op__. In this way:
     >>> b = a
@@ -61,29 +74,3 @@ def _inplace(op: Callable[[T_1, T_2], T_1]) -> Callable[[T_1, T_2], T_1]:
         self = op(self, other)
         return self
     return iop
-
-
-def __join(op: Callable[[T, T], T],
-           left: T | None = None, /, *rights: T) -> T | None:
-    for right in rights:
-        left = op(left, right)  # type: ignore
-    return left
-
-
-def _sum(iterable: Iterable[T]) -> T | None:
-    return __join(operator.add, *iterable)
-
-
-def _prod(iterable: Iterable[T]) -> T | None:
-    return __join(operator.mul, *iterable)
-
-
-def firstof(iterable: Iterable[T], /, default: T) -> T:
-    for item in iterable:
-        return item
-    return default
-
-
-def neg_after(ls: list, idx: int) -> None:
-    for i in range(len(ls))[idx + 1:]:
-        ls[i] = -ls[i]

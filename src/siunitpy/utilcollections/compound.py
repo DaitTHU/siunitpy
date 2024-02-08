@@ -48,7 +48,7 @@ class Compound(Generic[K]):
     '''
     __slots__ = ('_elements',)
 
-    def __init__(self, elements: dict[K, Fraction], *, move_dict=False):
+    def __init__(self, elements: dict[K, Fraction] = {}, /, *, move_dict=False):
         '''elements should be a rvalue and guarantee no zero value.'''
         if not isinstance(elements, dict):
             raise TypeError('elements must be dict.')

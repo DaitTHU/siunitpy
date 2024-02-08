@@ -14,6 +14,8 @@ class Dimension:
     - `N`: amount of substance
     - `J`: luminous intensity
 
+    It's a kind of immutable sequence.
+
     Get base quantity
     ---
     You can get base quantity property like mass by index, initial 
@@ -32,13 +34,13 @@ class Dimension:
     '''
 
     def __init__(self, L=0, M=0, T=0, I=0, H=0, N=0, J=0) -> None:
-        '''construct a `Dimension` object using 7 Fraction arguments, 
+        '''construct a `Dimension` object using 7 int/Fraction arguments, 
         default 0.
         >>> time_dim = Dimension(T=1)
         >>> vilocity_dim = Dimension(1, 0, -1)
 
         You can also use classmethod `Dimension.unpack` to construct a 
-        `Dimension` object from a `iterable`.
+        `Dimension` object from a iterable or dict.
         >>> force_dim = Dimension.unpack([1, 1, -2])
         >>> charge_dim = Dimension.unpack({'I': 1, 'T': 1})
         '''

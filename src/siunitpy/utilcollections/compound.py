@@ -1,13 +1,14 @@
 import operator
-from itertools import chain
-from typing import TypeVar, Generic, Iterator, Iterable, Callable
 from fractions import Fraction
+from itertools import chain
+from typing import Callable, Generic, Iterable, Iterator, TypeVar
 
 from .utils import _inplace
 
 __all__ = ['Compound']
 
 K = TypeVar('K')
+_ZERO = Fraction(0)
 
 
 def _unary(op: Callable[[Fraction], Fraction]):
@@ -28,36 +29,42 @@ def _scalar_mul(op: Callable[[Fraction, Fraction | int], Fraction]):
     def __op(self, other):
         if other == 0:
             return Compound({})
-        return Compound({key: op(val, other) 
-                            for key, val in self.items()})
+        return Compound({key: op(val, other)
+                         for key, val in self.items()})
     return __op, _inplace(__op)
 
 
 class Compound(Generic[K]):
     '''The class `Compound` is a `dict` whose keys are all the elements 
-    that make up a whole, and whose values are the corresponding 
-    contributions, which can of course be negative.
+    that make up the whole compound, and whose values are the corresponding 
+    contributions, which can be either postive or negative, but never zero.
 
-    Its function is similar to `defaultdict`. The keys have a default 
-    value of 0. Moreover, when the value of the key in the `Compound` is 0, 
-    it will be automatically deleted, because elements with a contribution 
-    of 0 should not be taken into account.
+    Its function is similar to `defaultdict`. 
+    For keys not in the compound, the default values are 0. 
+
+    Moreover, when the value of one key in the compound becomes 0, 
+    the key will be automatically deleted. 
+    Because elements with zero contribution should not be taken into account.
     '''
     __slots__ = ('_elements',)
 
-    def __init__(self, elements: dict[K, Fraction]):
+    def __init__(self, elements: dict[K, Fraction], *, move_dict=False):
         '''elements should be a rvalue and guarantee no zero value.'''
-        self._elements = elements
+        if not isinstance(elements, dict):
+            raise TypeError('elements must be dict.')
+        if move_dict:
+            self._elements = elements
+            return
+        self._elements = {k: Fraction(v) for k, v in elements.items() if v}
 
     def __contains__(self, key: K) -> bool: return key in self._elements
 
     def __getitem__(self, key: K) -> Fraction:
-        return self._elements[key] if key in self._elements else Fraction(0)
+        return self._elements.get(key, _ZERO)
 
     def __setitem__(self, key: K, value: Fraction) -> None:
         if value == 0:
-            if key in self._elements:
-                del self._elements[key]
+            self._elements.pop(key, _ZERO)
         else:
             self._elements[key] = value
 
@@ -79,7 +86,9 @@ class Compound(Generic[K]):
 
     def pop(self, key) -> Fraction: return self._elements.pop(key)
 
-    def __eq__(self, other) -> bool:
+    def clear(self): self._elements.clear()
+
+    def __eq__(self, other: 'Compound') -> bool:
         return self._elements == other._elements
 
     __pos__ = _unary(operator.pos)  # like copy()
@@ -91,4 +100,4 @@ class Compound(Generic[K]):
     __mul__, __imul__ = _scalar_mul(operator.mul)
     __rmul__ = __mul__
     __truediv__, __itruediv__ = _scalar_mul(operator.truediv)
-    #__floordiv__, __ifloordiv__ = _scalar_mul(operator.floordiv)
+    # __floordiv__, __ifloordiv__ = _scalar_mul(operator.floordiv)

@@ -91,5 +91,5 @@ class si(ConstClass):
     meV, eV, keV, MeV, GeV, TeV = map(_base('eV'), 'm kMGT')
     cal, kcal = map(_base('cal'), ' k')
     Ci = Constant.one('Ci')
-    barn = Constant.one('barn')
-    Rontgen = Constant.one('Rontgen')
+    b = Constant.one('b')
+    Rontgen = Constant.one('R')

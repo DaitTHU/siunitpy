@@ -5,8 +5,8 @@ from typing import Callable, Optional, Union, overload
 
 from .dimension import Dimension
 from .dimensionconst import DimensionConst
-from .unit_analysis import _combine, _deprefix, _resolve
-from .unit_data import _BASIC_SI, _UNIT_STD
+from .unit_analysis import _combine, _resolve
+from .unit_data import _BASIC_SI, _UNIT_STD, _UNIT_DIMVAL, _PREFIX
 from .utilcollections.compound import Compound
 from .utilcollections.utils import _inplace
 
@@ -95,7 +95,15 @@ class Unit:
         '''return a new unit that remove all the prefix, 
         and pop out the factor.
         '''
-        elements, factor = _deprefix(self._elements)
+        elements = self._elements.copy()
+        factor = 1
+        for unit in self._elements.keys():
+            if unit in _UNIT_DIMVAL:  # not prefixed
+                continue
+            e = elements.pop(unit)
+            factor *= _PREFIX[unit[0]].factor ** e
+            if len(unit) > 1:  # not a single prefix
+                elements[unit[1:]] += e
         deprefixed_unit = \
             Unit(elements, self.dimension, self.value / factor)
         return deprefixed_unit, factor

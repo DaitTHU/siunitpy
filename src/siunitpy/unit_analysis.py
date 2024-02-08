@@ -25,23 +25,29 @@ from fractions import Fraction
 
 from .dimension import Dimension
 from .dimensionconst import DimensionConst
-from .unit_data import (_PREFIX_FACTOR, _SPECIAL_DIMENSIONLESS, _SUPERSCRIPT,
-                        _UNITS)
+from .unit_data import (_PREFIX, _PREFIX_FULLNAME, _PREFIX_FULLNAME_MAXLEN,
+                        _PREFIX_FULLNAME_MINLEN, _PREFIX_MAXLEN,
+                        _SPECIAL_DIMENSIONLESS, _UNIT_DIMVAL, _UNIT_FULLNAME)
 from .utilcollections import Compound
-from .utilcollections.utils import _prod, _sum, unzip
+from .utilcollections.utils import _SUPERSCRIPT, _prod, _sum, neg_after
+from .utilcollections.utils import superscript as sup
+from .utilcollections.utils import unzip
 
-__all__ = ['_resolve', '_combine', '_deprefix']
+__all__ = ['_resolve', '_combine']
+
+_ONE = Fraction(1)
 
 _UNIT_SEP = re.compile(r'[/.·]+')
 _UNIT_EXPO = re.compile(r'[0-9+-]+$')
 _UNIT_STR = re.compile(r'[^0-9 +-]+')
 
+# special single char
 _FORMULARIZE = {
-    'μ': 'µ',
+    'μ': 'µ',  # u+03bc (Greek letter): u+00b5 (micro)
     '℃': '°C', '℉': '°F',
     '٪': '%', '⁒': '%',
 } | {s: str(i) for i, s in enumerate(_SUPERSCRIPT)}
-_SPECIAL_UNIT = re.compile(r'eV/c[2²]?|' + '|'.join(_FORMULARIZE))
+_SPECIAL_CHAR = re.compile(r'eV/c[2²]?|[' + ''.join(_FORMULARIZE) + ']')
 _FORMULARIZE |= {'eV/c': 'eVpc', 'eV/c2': 'eVpcc', 'eV/c²': 'eVpcc'}
 _FORMULAIC_UNIT = re.compile(r'eVpcc?')
 _SPECIALIZE = {'eVpc': 'eV/c', 'eVpcc': 'eV/c²'}
@@ -63,34 +69,39 @@ def _resolve(symbol: str, /) -> tuple[Compound[str], Dimension, float]:
       `value` = 4.1868 / (3600 * 1**2) = `0.001163`
     '''
     # convertion: for convience to deal with
-    symbol = _SPECIAL_UNIT.sub(_formularize_unit, symbol)
+    symbol = _SPECIAL_CHAR.sub(_formularize_unit, symbol)
     # special dimensionless case
     if symbol in _SPECIAL_DIMENSIONLESS:
-        return Compound({symbol: Fraction(1)}), \
+        return Compound({symbol: _ONE}, move_dict=True), \
             DimensionConst.DIMENSIONLESS, _SPECIAL_DIMENSIONLESS[symbol]
-    elif symbol in _UNITS:
-        return Compound({symbol: Fraction(1)}), *_UNITS[symbol]
-    units = [unit for unit in _UNIT_SEP.split(symbol) if unit]
-    # get exponent
-    ematch_gen = (_UNIT_EXPO.search(unit) for unit in units)
-    expo = [1 if e is None else int(e.group()) for e in ematch_gen]
-    for i, sepmatch in enumerate(_UNIT_SEP.finditer(symbol)):
-        if '/' in sepmatch.group():
-            neg_after(expo, i)  # you can also define expo a Vector
+    elif symbol in _UNIT_DIMVAL:
+        return Compound({symbol: _ONE}, move_dict=True), *_UNIT_DIMVAL[symbol]
+    # unite = unit(str) + exponent(str)
+    unites = [unite for unite in _UNIT_SEP.split(symbol) if unite]
+    # get exponent(str)
+    expo_match_gen = (_UNIT_EXPO.search(unite) for unite in unites)
+    expo = [1 if em is None else int(em.group()) for em in expo_match_gen]
+    for i, sep_match in enumerate(_UNIT_SEP.finditer(symbol)):
+        if '/' in sep_match.group():
+            neg_after(expo, i)  # you can use ElementWiseList
             break
+    # merge the same units
+    elements: Compound[str] = Compound({}, move_dict=True)
     # remove exponent
-    units = [_UNIT_STR.search(unit).group() for unit in units]  # type: ignore
-    elements: Compound[str] = Compound({})  # merge the same items
+    unit_match_gen = (_UNIT_STR.search(unite) for unite in unites)
+    udv = unzip(_resolve_single(um.group()) for um in unit_match_gen if um)
+    if not udv:  # is empty
+        return elements, DimensionConst.DIMENSIONLESS, 1
+    units, dims, vals = udv
     for unit, e in zip(units, expo):
         if e != 0:
             elements[unit] += e
-    dims, vals = unzip(_resolve_elem(unit) for unit in elements)
     dimension = _sum(dim * e for dim, e in zip(dims, expo)) or \
         DimensionConst.DIMENSIONLESS
     value = _prod(val ** e for val, e in zip(vals, expo)) or 1
     # special cases, when things like 'C2/F·J' -> ''
     if dimension == DimensionConst.DIMENSIONLESS:
-        elements = Compound({})
+        elements.clear()
     if isinstance(value, float) and value.is_integer():
         value = int(value)
     return elements, dimension, value
@@ -106,35 +117,35 @@ def _combine(elements: Compound[str]) -> str:
     return _FORMULAIC_UNIT.sub(_specialize_unit, symbol)
 
 
-def _deprefix(unit_elements: Compound[str]) -> tuple[Compound[str], float]:
-    new_elements = unit_elements.copy()
-    factor = 1
-    for unit in unit_elements.keys():
-        if unit in _UNITS:  # not prefixed
-            continue
-        e = new_elements.pop(unit)
-        factor *= _PREFIX_FACTOR[unit[0]] ** e
-        if len(unit) > 1:  # not a single prefix
-            new_elements[unit[1:]] += e
-    return new_elements, factor
-
-
-def _resolve_elem(unit: str) -> tuple[Dimension, float]:
+def _resolve_single(unit: str) -> tuple[str, Dimension, float]:
     '''resolve a single, unexponented unit str, return its 
     dimension and value (1 unit = ? SI-standard unit).
     '''
-    if unit in _UNITS:
-        return _UNITS[unit]
+    if unit in _UNIT_DIMVAL:
+        return unit, *_UNIT_DIMVAL[unit]
     # prefixed case
-    try:
-        prefix_factor = _PREFIX_FACTOR[unit[0]]
-    except KeyError:
-        raise UnitSymbolError(f"'{unit}' is not a valid unit.")
-    # de-prefix
-    nit = unit[1:]
-    if nit in _UNITS:
-        dim, value = _UNITS[nit]
-        return dim, prefix_factor * value
+    for prefix_len in range(_PREFIX_MAXLEN):
+        prefix, deprefixed_unit = unit[:prefix_len + 1], unit[prefix_len + 1:]
+        if prefix == 'u':
+            prefix = 'µ'
+        if prefix in _PREFIX and deprefixed_unit in _UNIT_DIMVAL:
+            unit = prefix + deprefixed_unit
+            prefix_factor = _PREFIX[prefix].factor
+            dim, value = _UNIT_DIMVAL[deprefixed_unit]
+            return unit, dim, prefix_factor * value
+    # fullname case
+    if unit in _UNIT_FULLNAME:
+        unit = _UNIT_FULLNAME[unit]
+        return unit, *_UNIT_DIMVAL[unit]
+    for prefix_len in range(_PREFIX_FULLNAME_MINLEN, _PREFIX_FULLNAME_MAXLEN):
+        prefix, deprefixed_unit = unit[:prefix_len + 1], unit[prefix_len + 1:]
+        if prefix in _PREFIX_FULLNAME and deprefixed_unit in _UNIT_FULLNAME:
+            prefix = _PREFIX_FULLNAME[prefix]
+            deprefixed_unit = _UNIT_FULLNAME[deprefixed_unit]
+            unit = prefix + deprefixed_unit
+            prefix_factor = _PREFIX[prefix].factor
+            dim, value = _UNIT_DIMVAL[deprefixed_unit]
+            return unit, dim, prefix_factor * value
     raise UnitSymbolError(f"'{unit}' is not a valid unit.")
 
 
@@ -146,25 +157,5 @@ def _specialize_unit(matchobj: re.Match[str]) -> str:
     return _SPECIALIZE[matchobj.group()]
 
 
-def sup(expo: Fraction) -> str:
-    '''superscript'''
-    if expo.numerator < 0:
-        return '⁻¹' if expo == -1 else '⁻' + sup(-expo)
-    if expo == 1:
-        return ''
-    if expo.denominator == 1:
-        return int_sup(expo.numerator)
-    return int_sup(expo.numerator) + 'ᐟ' + int_sup(expo.denominator)
-
-
-def int_sup(number: int) -> str:
-    return ''.join(_SUPERSCRIPT[int(digit)] for digit in str(number))
-
-
-def neg_after(ls: list, idx: int) -> None:
-    for i in range(len(ls))[idx + 1:]:
-        ls[i] = -ls[i]
-
-
-class UnitSymbolError(Exception):
+class UnitSymbolError(ValueError):
     pass

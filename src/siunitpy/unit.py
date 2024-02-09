@@ -7,7 +7,7 @@ from typing import Callable, Optional, Union, overload
 from .dimension import Dimension
 from .dimensionconst import DimensionConst
 from .unit_analysis import _combine, _combine_fullname, _resolve
-from .unit_data import _BASIC_SI, _PREFIX, _UNIT, _UNIT_STD
+from .unit_archive import _BASIC_SI, _PREFIX, _UNIT, _UNIT_STD
 from .unitelement import UnitElement
 from .utilcollections.compound import Compound
 from .utilcollections.utils import _inplace
@@ -74,7 +74,7 @@ class Unit:
             return
         elif dimension is None:
             raise TypeError(f"{type(symbol) = } must be 'str'.")
-        # developer mode, make sure type(symbol) is Compound[str]
+        # developer mode, make sure type(symbol) is Compound
         if dimension == DimensionConst.DIMENSIONLESS:  # like 'C2/F·J'
             self._elements: Compound[UnitElement] = Compound()
         else:

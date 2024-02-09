@@ -1,6 +1,6 @@
 from typing import Optional, overload
 
-from .unit_data import _PREFIX, _PREFIX_FULLNAME, _UNIT, _UNIT_FULLNAME
+from .unit_archive import _PREFIX, _PREFIX_FULLNAME, _UNIT, _UNIT_FULLNAME
 
 _EMPTY_STR = ''
 _PREFIX_ALIAS = {'u': 'µ'}

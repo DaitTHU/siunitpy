@@ -1,13 +1,12 @@
-from typing import overload
-
 from .dimension import Dimension
 from .dimensionconst import DimensionConst
+from .unitdata import SymbolData, UnitData
 from .utilcollections.utils import firstof
 
 __all__ = [
     '_PI', '_WEIN_ZERO',
     '_PREFIX', '_PREFIX_FULLNAME',
-    '_SPECIAL_DIMENSIONLESS', '_BASIC_SI',
+    '_BASIC_SI',
     '_UNIT', '_UNIT_FULLNAME', '_UNIT_STD'
 ]
 
@@ -32,43 +31,12 @@ _SSP = 100000               # standard state pressure
 _MMHG = _ATM / 760          # 1 mmHg = 1 atm / 760
 
 
-class SymbolData:
-    '''used as dict-value, can be represent a unit or prefix.'''
-    __slots__ = ('_fullname', '_factor')
-
-    def __init__(self, fullname: str, factor: float) -> None:
-        self._fullname = fullname
-        self._factor = factor
-
-    @property
-    def fullname(self): return self._fullname
-    @property
-    def factor(self): return self._factor
-
-
-class UnitData:
-    '''a unit symbol (str) moreover need dimension.'''
-    __slots__ = ('_dimension', '_fullname', '_factor')
-
-    def __init__(self, dimension: Dimension, symbol_data: SymbolData) -> None:
-        self._dimension = dimension
-        self._fullname = symbol_data.fullname
-        self._factor = symbol_data.factor
-
-    @property
-    def dimension(self): return self._dimension
-    @property
-    def fullname(self): return self._fullname
-    @property
-    def factor(self): return self._factor
-
-
 _PREFIX: dict[str, SymbolData] = {
     # whole unit
     'Q': SymbolData('quetta', 1e30),
     'R': SymbolData('ronna', 1e27),
     'Y': SymbolData('yotta', 1e24),
-    'Z': SymbolData('zetta', 1e18),
+    'Z': SymbolData('zetta', 1e21),
     'E': SymbolData('exa', 1e18),
     'P': SymbolData('peta', 1e15),
     'T': SymbolData('tera', 1e12),
@@ -98,6 +66,10 @@ _PREFIX_FULLNAME: dict[str, str] = {v.fullname: k for k, v in _PREFIX.items()}
 
 _SPECIAL_DIMENSIONLESS: dict[str, float] = {
     '': 1, '%': 1e-2, '‰': 1e-3, '‱': 1e-4,
+}
+
+_LOGARITHMIC_RATIO: dict[str, str] = {
+    'Np': 'neper', 'B': 'bel'
 }
 
 _BASIC_SI = ('m', 'kg', 's', 'A', 'K', 'mol', 'cd')

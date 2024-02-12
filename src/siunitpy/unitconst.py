@@ -32,7 +32,7 @@ class UnitConst(ConstClass):
     WEBER = Unit('Wb')
     TESLA = Unit('T')
     HENRY = Unit('H')
-    DEGREE_CELSIUS = Unit('°C')
+    # DEGREE_CELSIUS = Unit('°C')
     LUMEN = Unit('lm')
     LUX = Unit('lx')
     BECQUEREL = Unit('Bq')

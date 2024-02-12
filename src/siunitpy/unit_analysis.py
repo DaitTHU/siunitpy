@@ -40,13 +40,11 @@ _SPECIAL_CHAR = {
     '٪': '%', '⁒': '%',
     "'": '′', '"': '″',
 } | {s: str(i) for i, s in enumerate(_SUPERSCRIPT)}
-_SPECIAL_PAT = re.compile(r'eV/c[2²]?|[' + ''.join(_SPECIAL_CHAR) + ']')
-_SPECIAL_CHAR |= {'eV/c': 'eVpc', 'eV/c2': 'eVpcc', 'eV/c²': 'eVpcc'}
+_SPECIAL_PAT = re.compile('[' + ''.join(_SPECIAL_CHAR) + ']')
 
 
 def _resolve(symbol: str, /) -> Compound[UnitElement]:
-    '''resolve the unit info from `str`, return elements of Unit.
-    '''
+    '''resolve the unit info from `str`, return elements of Unit.'''
     elements: Compound[UnitElement] = Compound()
     # convertion: for convience to deal with
     symbol = _SPECIAL_PAT.sub(_formularize_unit, symbol)

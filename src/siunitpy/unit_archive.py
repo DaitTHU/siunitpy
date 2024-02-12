@@ -1,7 +1,8 @@
 from .dimension import Dimension
 from .dimensionconst import DimensionConst
-from .unitdata import SymbolData, UnitData
+from .unitdata import BaseData, PrefixData, UnitData
 from .utilcollections.utils import firstof
+from .value_archive import *
 
 __all__ = [
     '_PI', '_WEIN_ZERO',
@@ -10,55 +11,55 @@ __all__ = [
     '_UNIT', '_UNIT_FULLNAME', '_UNIT_STD'
 ]
 
-# math constants
-_PI = 3.1415926535897932384626
-_WEIN_ZERO = 4.965114231744277  # solution of: x = 5 * (1 - exp(-x))
-# physical constants
-_C = 299792458              # speed of light
-_ELC = 1.602176634e-19      # elementary charge
-# unit value definition
+
+## unit value definition
+# time
+_MINUTE = 60
+_HOUR = 60 * _MINUTE
+_DAY = 24 * _HOUR
+_SIMPLE_YEAR = 365 * _DAY
+# degree
 _DEGREE = _PI / 180
 _ARCMIN = _DEGREE / 60
 _ARCSEC = _ARCMIN / 60
+# others
 _EV = _ELC                  # elctron volt
 _DALTON = 1.660539040e-27   # 1 Dalton = mass(12C) / 12
-_EVPC = _EV / _C            # eV/c
-_EVPCC = _EVPC / _C         # eV/c2
 _AU = 149597870700          # astronomical unit
 _PC = _AU / _ARCSEC         # parsec
 _ATM = 101325               # standard atmosphere
-_SSP = 100000               # standard state pressure
+_SSP = 100000               # standard-state pressure
 _MMHG = _ATM / 760          # 1 mmHg = 1 atm / 760
 
 
-_PREFIX: dict[str, SymbolData] = {
+_PREFIX: dict[str, PrefixData] = {
     # whole unit
-    'Q': SymbolData('quetta', 1e30),
-    'R': SymbolData('ronna', 1e27),
-    'Y': SymbolData('yotta', 1e24),
-    'Z': SymbolData('zetta', 1e21),
-    'E': SymbolData('exa', 1e18),
-    'P': SymbolData('peta', 1e15),
-    'T': SymbolData('tera', 1e12),
-    'G': SymbolData('giga', 1e9),
-    'M': SymbolData('mega', 1e6),
-    'k': SymbolData('kilo', 1e3),
-    'h': SymbolData('hecto', 1e2),
-    'da': SymbolData('deka', 1e1),
-    '': SymbolData('', 1),
+    'Q': PrefixData('quetta', 1e30),
+    'R': PrefixData('ronna', 1e27),
+    'Y': PrefixData('yotta', 1e24),
+    'Z': PrefixData('zetta', 1e21),
+    'E': PrefixData('exa', 1e18),
+    'P': PrefixData('peta', 1e15),
+    'T': PrefixData('tera', 1e12),
+    'G': PrefixData('giga', 1e9),
+    'M': PrefixData('mega', 1e6),
+    'k': PrefixData('kilo', 1e3),
+    'h': PrefixData('hecto', 1e2),
+    'da': PrefixData('deka', 1e1),
+    '': PrefixData('', 1),
     # sub unit
-    'd': SymbolData('deci', 1e-1),
-    'c': SymbolData('centi', 1e-2),
-    'm': SymbolData('milli', 1e-3),
-    'µ': SymbolData('micro', 1e-6),
-    'n': SymbolData('nano', 1e-9),
-    'p': SymbolData('pico', 1e-12),
-    'f': SymbolData('femto', 1e-15),
-    'a': SymbolData('atto', 1e-18),
-    'z': SymbolData('zepto', 1e-21),
-    'y': SymbolData('yocto', 1e-24),
-    'r': SymbolData('ronto', 1e-27),
-    'q': SymbolData('quecto', 1e-30),
+    'd': PrefixData('deci', 1e-1),
+    'c': PrefixData('centi', 1e-2),
+    'm': PrefixData('milli', 1e-3),
+    'µ': PrefixData('micro', 1e-6),
+    'n': PrefixData('nano', 1e-9),
+    'p': PrefixData('pico', 1e-12),
+    'f': PrefixData('femto', 1e-15),
+    'a': PrefixData('atto', 1e-18),
+    'z': PrefixData('zepto', 1e-21),
+    'y': PrefixData('yocto', 1e-24),
+    'r': PrefixData('ronto', 1e-27),
+    'q': PrefixData('quecto', 1e-30),
 }
 
 _PREFIX_FULLNAME: dict[str, str] = {v.fullname: k for k, v in _PREFIX.items()}
@@ -76,100 +77,104 @@ _BASIC_SI = ('m', 'kg', 's', 'A', 'K', 'mol', 'cd')
 
 # unit library, classified by dimension
 # it should appear and be used only in this file
-__UNIT_LIB: dict[Dimension, dict[str, SymbolData]] = {
+__UNIT_LIB: dict[Dimension, dict[str, BaseData]] = {
     DimensionConst.DIMENSIONLESS: {
-        '': SymbolData('', 1),
-        'rad': SymbolData('radian', 1),
-        'sr': SymbolData('steradian', 1),
-        '°': SymbolData('degree', _DEGREE),
-        '′': SymbolData('arcminute', _ARCMIN),
-        '″': SymbolData('arcsecond', _ARCSEC),
+        '': BaseData('', 1),
+        'rad': BaseData('radian', 1),
+        'sr': BaseData('steradian', 1),
+        '°': BaseData('degree', _DEGREE, never_prefix=True),
+        '′': BaseData('arcminute', _ARCMIN, never_prefix=True),
+        '″': BaseData('arcsecond', _ARCSEC, never_prefix=True),
     },
     DimensionConst.LENGTH: {
-        'm': SymbolData('meter', 1),
-        'Å': SymbolData('angstrom', 1e-10),  # ångström
-        'au': SymbolData('astronomical-unit', _AU),
-        'pc': SymbolData('parsec', _PC)
+        'm': BaseData('meter', 1),
+        'Å': BaseData('angstrom', 1e-10),  # ångström
+        'au': BaseData('astronomical-unit', _AU),
+        'pc': BaseData('parsec', _PC)
     },
     DimensionConst.MASS: {
-        'g': SymbolData('gram', 1e-3),
-        't': SymbolData('ton', 1000),
-        'u': SymbolData('amu', _DALTON),
-        'Da': SymbolData('dalton', _DALTON),
-        'eVpcc': SymbolData('electronvolt/c²', _EVPCC),  # for convience
+        'g': BaseData('gram', 1e-3),
+        't': BaseData('ton', 1000),
+        'u': BaseData('amu', _DALTON),
+        'Da': BaseData('dalton', _DALTON),
     },
     DimensionConst.TIME: {
-        's': SymbolData('second', 1),
-        'min': SymbolData('minute', 60),
-        'h': SymbolData('hour', 3600),
-        'd': SymbolData('day', 86400),
-        'yr': SymbolData('year', 31536000),         # simple year: 1 yr = 365 d
-        # Julian year: 1 a = 365.25 d
-        'a': SymbolData('Julian-year', 31557600),
+        's': BaseData('second', 1),
+        'min': BaseData('minute', _MINUTE),
+        'h': BaseData('hour', _HOUR),
+        'd': BaseData('day', _DAY),
+        'yr': BaseData('year', _SIMPLE_YEAR),
     },
     DimensionConst.ELECTRIC_CURRENT: {
-        'A': SymbolData('ampere', 1),
+        'A': BaseData('ampere', 1),
     },
     DimensionConst.THERMODYNAMIC_TEMPERATURE: {
-        'K': SymbolData('kelvin', 1),
+        'K': BaseData('kelvin', 1),
         # TODO: remove degree Celsius(°C), Fahrenheit(°F).
-        '°C': SymbolData('degree-Celsius', 1),
-        '°F': SymbolData('degree-Fahrenheit', 5 / 9),
-        '°R': SymbolData('degree-Rankine', 1.8)
+        # '°C': BaseData('degree-Celsius', 1, never_prefix=True),
+        # '°F': BaseData('degree-Fahrenheit', 5/9, never_prefix=True),
+        # '°R': BaseData('degree-Rankine', 1.8, never_prefix=True)
     },
     DimensionConst.AMOUNT_OF_SUBSTANCE: {
-        'mol': SymbolData('mole', 1),
+        'mol': BaseData('mole', 1),
     },
     DimensionConst.LUMINOUS_INTENSITY: {
-        'cd': SymbolData('candela', 1),
-        'lm': SymbolData('lumen', 1),
+        'cd': BaseData('candela', 1),
+        'lm': BaseData('lumen', 1),
     },
     # derived
     DimensionConst.AREA: {
-        'b': SymbolData('barn', 1e-28),
-        'ha': SymbolData('hectare', 10000),
+        'b': BaseData('barn', 1e-28),
+        'ha': BaseData('hectare', 10000, never_prefix=True),
     },
     DimensionConst.VOLUME: {
-        'L': SymbolData('liter', 1e-3),
+        'L': BaseData('liter', 1e-3),
     },
     DimensionConst.FREQUENCY: {
-        'Hz': SymbolData('hertz', 1),
-        'Bq': SymbolData('becquerel', 1),
-        'Ci': SymbolData('curie', 3.7e10),
+        'Hz': BaseData('hertz', 1),
+        'Bq': BaseData('becquerel', 1),
+        'Ci': BaseData('curie', 3.7e10),
+    },
+    DimensionConst.VILOCITY: {
+        'c': BaseData('speed-of-light', _C, never_prefix=True),
+    },
+    DimensionConst.ACCELERATOR: {
+        'gal': BaseData('Gal', 0.01),
     },
     DimensionConst.FORCE: {
-        'N': SymbolData('newton', 1),
+        'N': BaseData('newton', 1),
+        'gf': BaseData('gram-fore', _GRAVITY / 1000)
     },
     DimensionConst.PRESSURE: {
-        'Pa': SymbolData('pascal', 1),
-        'bar': SymbolData('bar', 10000),
-        'atm': SymbolData('standard-atmosphere', _ATM),
-        'mmHg': SymbolData('millimeter-of-mercury', _MMHG),
-        'Torr': SymbolData('torr', _MMHG),
+        'Pa': BaseData('pascal', 1),
+        'bar': BaseData('bar', _SSP),
+        'atm': BaseData('standard-atmosphere', _ATM),
+        'mHg': BaseData('millimeter-of-mercury', _MMHG * 1000),
+        'Torr': BaseData('torr', _MMHG),  # Torricelli
     },
     DimensionConst.ENERGY: {
-        'J': SymbolData('joule', 1),
-        'Wh': SymbolData('watthour', 3600),
-        'eV': SymbolData('electronvolt', _ELC),
-        'cal': SymbolData('calorie', 4.1868),
+        'J': BaseData('joule', 1),
+        'Wh': BaseData('watthour', _HOUR),
+        'eV': BaseData('electronvolt', _EV),
+        'cal': BaseData('calorie', 4.184),
     },
-    DimensionConst.POWER: {'W': SymbolData('watt', 1), },
-    DimensionConst.MOMENTUM: {'eVpc': SymbolData('electronvolt/c', _EVPC), },
-    DimensionConst.CHARGE: {'C': SymbolData('coulomb', 1), },
-    DimensionConst.VOLTAGE: {'V': SymbolData('volt', 1), },
-    DimensionConst.CAPATITANCE: {'F': SymbolData('farad', 1), },
-    DimensionConst.RESISTANCE: {'Ω': SymbolData('ohm', 1), },
-    DimensionConst.CONDUCTANCE: {'S': SymbolData('siemens', 1), },
-    DimensionConst.MAGNETIC_FLUX: {'Wb': SymbolData('weber', 1), },
-    DimensionConst.MAGNETIC_INDUCTION: {'T': SymbolData('tesla', 1), },
-    DimensionConst.INDUCTANCE: {'H': SymbolData('henry', 1), },
-    DimensionConst.ILLUMINANCE: {'lx': SymbolData('lux', 1), },
+    DimensionConst.POWER: {'W': BaseData('watt', 1), },
+    # DimensionConst.MOMENTUM
+    DimensionConst.CHARGE: {'C': BaseData('coulomb', 1), },
+    DimensionConst.VOLTAGE: {'V': BaseData('volt', 1), },
+    DimensionConst.CAPATITANCE: {'F': BaseData('farad', 1), },
+    DimensionConst.RESISTANCE: {'Ω': BaseData('ohm', 1), },
+    DimensionConst.CONDUCTANCE: {'S': BaseData('siemens', 1), },
+    DimensionConst.MAGNETIC_FLUX: {'Wb': BaseData('weber', 1), },
+    DimensionConst.MAGNETIC_INDUCTION: {'T': BaseData('tesla', 1), },
+    DimensionConst.INDUCTANCE: {'H': BaseData('henry', 1), },
+    DimensionConst.ILLUMINANCE: {'lx': BaseData('lux', 1), },
     DimensionConst.KERMA: {
-        'Gy': SymbolData('gray', 1),
-        'Sv': SymbolData('sievert', 1),
+        'Gy': BaseData('gray', 1),
+        'Sv': BaseData('sievert', 1),
     },
-    DimensionConst.EXPOSURE: {'R': SymbolData('rontgen', 2.58e-4), },
-    DimensionConst.CATALYTIC_ACTIVITY: {'kat': SymbolData('katal', 1), },
+    DimensionConst.EXPOSURE: {'R': BaseData('roentgen', 2.58e-4), },
+    DimensionConst.CATALYTIC_ACTIVITY: {'kat': BaseData('katal', 1), },
 }
 
 _UNIT: dict[str, UnitData] = {
@@ -189,7 +194,8 @@ _UNIT_FULLNAME: dict[str, str] = {
 __IRREGULAR_UNIT_DIM: set[Dimension] = {
     DimensionConst.DIMENSIONLESS,
     DimensionConst.AREA, DimensionConst.VOLUME,
-    DimensionConst.MOMENTUM, DimensionConst.EXPOSURE
+    DimensionConst.VILOCITY, DimensionConst.ACCELERATOR, DimensionConst.MOMENTUM,
+    DimensionConst.EXPOSURE
 }
 _UNIT_STD: dict[Dimension, str] = {
     dim: firstof(unit_val, default='')

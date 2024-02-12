@@ -1,5 +1,5 @@
 from ..constant import Constant, constant
-from ..unit_archive import _PI, _WEIN_ZERO
+from ..value_archive import _PI, _WEIN_ZERO, _GRAVITY
 from ..utilcollections.constclass import ConstClass
 from .SIunit import si
 
@@ -53,18 +53,18 @@ class SI(ConstClass):
     # second radiation constant
     c2 = constant(h * c / kB)
     # conductance quantum
-    G0 = constant((2 * e**2 / h).isimplify_unit())
+    G0 = constant((2 * e**2 / h).simplify_unit(inplace=True))
     # Josephson constant
     KJ = constant((2 * e / h).ito('Hz/V'))
     # magnetic flux quantum
-    Phi0 = constant((1 / KJ).isimplify_unit())
+    Phi0 = constant((1 / KJ).simplify_unit(inplace=True))
     # von Klitzing constant
-    RK = constant((h / e**2).isimplify_unit())
+    RK = constant((h / e**2).simplify_unit(inplace=True))
 
     ### other defined exact constants
 
     # standard acceleration of gravity
-    g = Constant(9.80665, 'm/s2')
+    g = Constant(_GRAVITY, 'm/s2')
     # standard temperature
     T0 = Constant(273.15, 'K')
     # standard pressure
@@ -96,7 +96,7 @@ class SI(ConstClass):
     # magnetic constant
     km = constant(mu0 / (4 * _PI))
     # characteristic impedance of vacuum
-    Z0 = constant((mu0 / epsilon0).isimplify_unit().nthroot(2))
+    Z0 = constant((mu0 / epsilon0).simplify_unit(inplace=True).nthroot(2))
     # fine-structure constant
     alpha = constant(e**2 / (2 * epsilon0 * h * c))
     # inverse fine-structure constant
@@ -117,7 +117,7 @@ class SI(ConstClass):
     # electron charge to mass quotient
     e_me = constant(e / me)
     # Compton wavelength
-    lambdaC = constant((h / (me * c)).isimplify_unit())
+    lambdaC = constant((h / (me * c)).simplify_unit(inplace=True))
     # classical electron radius
     re = constant(alpha * lambdaC / (2 * _PI))
     # Thomson cross section

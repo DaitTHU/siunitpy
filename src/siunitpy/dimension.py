@@ -4,21 +4,12 @@ import operator
 from fractions import Fraction
 from typing import Callable, Iterable, SupportsIndex
 
-from .utilcollections.utils import _inplace
+from .utilcollections.utils import _inplace, common_rational
 
 __all__ = ['Dimension']
 
 _DIM_VAR = ('L', 'M', 'T', 'I', 'H', 'N', 'J')
 _DIM_NUM = len(_DIM_VAR)
-
-
-def common_rational(number: int | float) -> Fraction:
-    '''CommonRational is common rational numbers, common means it's
-    integer or fraction with small numerator and denominator, like
-    1, -42, 2/3...
-    '''
-    frac = Fraction(number)
-    return frac.limit_denominator() if isinstance(number, float) else frac
 
 
 def _unpack_vector():

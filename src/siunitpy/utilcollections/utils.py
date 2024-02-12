@@ -1,11 +1,10 @@
-import operator
+import sys
 from decimal import Decimal
 from fractions import Fraction
-from math import sqrt
 from typing import Callable, Iterable, TypeVar, overload
 
 __all__ = [
-    'superscript',
+    'superscript', 'common_rational',
     'unzip', 'firstof', 'neg_after',
     '_inplace',
 ]
@@ -13,6 +12,12 @@ __all__ = [
 T = TypeVar('T')
 T_1, T_2, T_3 = TypeVar('T_1'), TypeVar('T_2'), TypeVar('T_3')
 K, V = TypeVar('K'), TypeVar('V')
+
+if sys.version_info >= (3, 12):
+    ...
+else:
+    from typing import TypeAlias
+    Number: TypeAlias = int | float | Decimal | Fraction
 
 
 _SUPERSCRIPT = '⁰¹²³⁴⁵⁶⁷⁸⁹'
@@ -31,6 +36,17 @@ def superscript(ratio: Fraction) -> str:
 
 def _sup_int(number: int) -> str:
     return ''.join(_SUPERSCRIPT[int(digit)] for digit in str(number))
+
+
+def common_rational(number: Number) -> Fraction:
+    '''CommonRational is common rational numbers, common means it's
+    integer or fraction with small numerator and denominator, like
+    1, -42, 2/3...
+    '''
+    if isinstance(number, Fraction):
+        return number
+    frac = Fraction(number)
+    return frac.limit_denominator() if isinstance(number, float) else frac
 
 
 @overload

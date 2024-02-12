@@ -1,9 +1,10 @@
 import operator
 from fractions import Fraction
 from itertools import chain
-from typing import Callable, Generic, Iterable, Iterator, TypeVar
+from typing import Callable, Generator, Generic, Iterable, Iterator, TypeVar
 
-from .utils import _inplace
+from .utils import Number, _inplace
+from .utils import common_rational as frac
 
 __all__ = ['Compound']
 
@@ -13,24 +14,21 @@ _ZERO = Fraction(0)
 
 def _unary(op: Callable[[Fraction], Fraction]):
     def __op(self):
-        return Compound({key: op(val) for key, val in self.items()})
+        return Compound({k: op(v) for k, v in self.items()}, move_dict=True)
     return __op
 
 
-def _vector_add(op: Callable[[Fraction, Fraction], Fraction]):
+def _vector_add(op: Callable[[Fraction, Number], Fraction]):
     def __op(self, other):
-        dict_gen = ((key, op(self[key], other[key])) 
-                    for key in chain(self, other))
-        return Compound({key: val for key, val in dict_gen if val})
+        return Compound((k, op(self[k], other[k])) for k in chain(self, other))
     return __op, _inplace(__op)
 
 
-def _scalar_mul(op: Callable[[Fraction, Fraction | int], Fraction]):
+def _scalar_mul(op: Callable[[Fraction, Number], Fraction]):
     def __op(self, other):
         if other == 0:
-            return Compound({})
-        return Compound({key: op(val, other)
-                         for key, val in self.items()})
+            return Compound()
+        return Compound((k, op(v, other)) for k, v in self.items())
     return __op, _inplace(__op)
 
 
@@ -48,14 +46,16 @@ class Compound(Generic[K]):
     '''
     __slots__ = ('_elements',)
 
-    def __init__(self, elements: dict[K, Fraction] = {}, /, *, move_dict=False):
-        '''elements should be a rvalue and guarantee no zero value.'''
-        if not isinstance(elements, dict):
-            raise TypeError('elements must be dict.')
-        if move_dict:
+    def __init__(self, elements: dict[K, Fraction] |
+                 Generator[tuple[K, Number], None, None] = {}, /, *,
+                 move_dict=False):
+        if move_dict and isinstance(elements, dict):
             self._elements = elements
             return
-        self._elements = {k: Fraction(v) for k, v in elements.items() if v}
+        if isinstance(elements, dict):
+            self._elements = {k: frac(v) for k, v in elements.items() if v}
+        elif isinstance(elements, (Iterable, Generator)):
+            self._elements = {k: frac(v) for k, v in elements if v}
 
     def __contains__(self, key: K) -> bool: return key in self._elements
 
@@ -72,11 +72,15 @@ class Compound(Generic[K]):
 
     def __iter__(self) -> Iterator[K]: return iter(self._elements)
 
-    def __str__(self) -> str: return str(self._elements)
+    def __str__(self) -> str: return '{' \
+        + ', '.join(f'{k}: {v}' for k, v in self._elements.items()) + '}'
+
+    def __repr__(self) -> str: return '{' \
+        + ', '.join(f'{repr(k)}: {v}' for k, v in self._elements.items()) + '}'
 
     def __len__(self) -> int: return len(self._elements)
 
-    def copy(self): return Compound(self._elements.copy())
+    def copy(self): return Compound(self._elements.copy(), move_dict=True)
 
     def keys(self): return self._elements.keys()
 

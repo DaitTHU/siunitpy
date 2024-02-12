@@ -61,27 +61,18 @@ class Quantity(Generic[T]):
     def ito(self, new_unit: str | Unit, *,
             assertDimension=True) -> Quantity[T]: ...
 
-    def deprefix_unit(self) -> Quantity[T]:
+    def deprefix_unit(self, *, inplace=False) -> Quantity[T]:
         '''remove the prefix of the unit.'''
 
-    def ideprefix_unit(self) -> Quantity[T]:
-        '''inplace remove the prefix of the unit.'''
-
-    def to_basic_unit(self) -> Quantity[T]:
+    def to_basic_unit(self, *, inplace=False) -> Quantity[T]:
         '''transform unit to the combination of `_BASIC_SI` unit with 
         the same dimension.
         '''
 
-    def ito_basic_unit(self) -> Quantity[T]:
-        '''inplace `to_basic_unit()`'''
-
-    def simplify_unit(self) -> Quantity[T]:
+    def simplify_unit(self, *, inplace=False) -> Quantity[T]:
         '''try if the complex unit can be simplified as u, u⁻¹, u², u⁻², 
         where u represents a single `_BASIC_SI` unit. 
         '''
-
-    def isimplify_unit(self) -> Quantity[T]:
-        '''inplace `simplify_unit()`'''
 
     def addable(self, other: Quantity, /, *, assertTrue=False) -> bool:
         '''check if self is addable with other, i.e. same dimension.'''

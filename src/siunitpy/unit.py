@@ -2,7 +2,7 @@ import operator
 from fractions import Fraction
 from itertools import product
 from math import prod
-from typing import Callable, Optional, Union, overload
+from typing import Callable, Optional, overload
 
 from .dimension import Dimension
 from .dimensionconst import DimensionConst
@@ -15,6 +15,7 @@ from .utilcollections.utils import _inplace
 __all__ = ['Unit', 'UnitDimensionError', '_DIMENSIONLESS_UNIT']
 
 _ONE, _TWO = Fraction(1), Fraction(2)
+_SIMPLE_EXPONENT = (-_ONE, _TWO, -_TWO)
 
 
 def _nthroot(a, b): return a ** (1 / b)
@@ -45,7 +46,7 @@ def _scalar_mul(op: Callable, valop: Callable):
 
 
 class Unit:
-    __slots__ = ('_elements', '_dimension', '_value', '_symbol', '_fullname')
+    __slots__ = ('_elements', '_dimension', '_value')
 
     @overload
     def __init__(self, symbol: str) -> None: ...
@@ -64,30 +65,28 @@ class Unit:
             self._elements = _resolve(symbol)
             dim_gen = (u.dimension * e for u, e in self._elements.items())
             self._dimension = sum(dim_gen, start=DimensionConst.DIMENSIONLESS)
+            self._value = prod(u.value**e for u, e in self._elements.items())
             if self.dimension == DimensionConst.DIMENSIONLESS:  # like "C²/F·J"
                 self._elements.clear()
-            self._value = prod(u.value**e for u, e in self._elements.items())
             if isinstance(self.value, float) and self.value.is_integer():
                 self._value = int(self.value)
-            self._symbol = _combine(self._elements)
-            self._fullname = _combine_fullname(self._elements)
             return
         elif dimension is None:
             raise TypeError(f"{type(symbol) = } must be 'str'.")
         # developer mode, make sure type(symbol) is Compound
-        if dimension == DimensionConst.DIMENSIONLESS:  # like 'C2/F·J'
+        if dimension == DimensionConst.DIMENSIONLESS:  # like "C²/F·J"
             self._elements: Compound[UnitElement] = Compound()
-        else:
+        elif isinstance(symbol, Compound):
             self._elements = symbol  # no copy
+        else:
+            raise TypeError(f"elements' type must be 'Compound'.")
         self._dimension = dimension
         self._value = value
-        self._symbol = _combine(self._elements)
-        self._fullname = _combine_fullname(self._elements)
 
     @property
-    def symbol(self) -> str: return self._symbol
+    def symbol(self) -> str: return _combine(self._elements)
     @property
-    def fullname(self) -> str: return self._fullname
+    def fullname(self) -> str: return _combine_fullname(self._elements)
     @property
     def dimension(self) -> Dimension: return self._dimension
     @property
@@ -102,51 +101,50 @@ class Unit:
     def __hash__(self) -> int: return hash(self.symbol)
 
     @classmethod
-    def move(cls, unit: Union['Unit', str]) -> 'Unit':
+    def move(cls, unit: 'str | Unit') -> 'Unit':
         '''type(unit) must be str or Unit'''
         return Unit(unit) if isinstance(unit, str) else unit
 
-    def deprefix(self) -> tuple['Unit', float]:
-        '''return a new unit that remove all the prefix, 
-        and pop out the factor.
-        '''
-        elements = self._elements.copy()
+    def deprefix(self):
+        '''return a new unit that remove all the prefix.'''
+        elements = self._elements
         factor = 1
         for unit in self._elements:
             if unit in _UNIT:  # not prefixed
                 continue
             e = elements.pop(unit)
-            factor *= _PREFIX[unit.prefix].factor ** e
-            if unit.basic:  # not a single prefix
+            factor *= _PREFIX[unit.prefix].value ** e
+            if unit.base:  # not a single prefix
+                if elements is self._elements:
+                    elements = self._elements.copy()
                 elements[unit.deprefix()] += e
-        deprefixed_unit = \
-            Unit(elements, self.dimension, self.value / factor)
-        return deprefixed_unit, factor
+        return Unit(elements, self.dimension, self.value / factor)
 
-    def to_basic(self) -> tuple['Unit', float]:
-        '''return a combination of `_BASIC_SI` unit with the same dimension, 
-        whose value = 1, thus the factor is self.value.
+    def to_basic(self):
+        '''return a combination of basic SI unit 
+        (i.e. m, kg, s, A, K, mol, cd) 
+        with the same dimension.
         '''
         elements = Compound({UnitElement(unit): e for unit, e in
                              zip(_BASIC_SI, self.dimension) if e}, move_dict=True)
-        basic_unit = Unit(elements, self.dimension, 1)
-        return basic_unit, self.value
+        return Unit(elements, self.dimension, 1)
 
-    def simplify(self) -> tuple['Unit', float]:
-        '''if the complex unit can be simplified as m, m-1, m2, m-2, 
-        where m represents a `_BASIC_SI` unit. 
-        e.g. 
+    def simplify(self):
+        '''if the complex unit can be simplified as m, m⁻¹, m², m⁻², 
+        where m represents a standard SI unit. 
+
+        e.g. the standard unit of voltage is V.
         '''
         if len(self._elements) < 2:
-            return self, 1
+            return self
         if self.dimension in _UNIT_STD:
-            return Unit(_UNIT_STD[self.dimension]), self.value
-        for (dim, symbol), expo in product(_UNIT_STD.items(), (-_ONE, _TWO, -_TWO)):
+            return Unit(_UNIT_STD[self.dimension])
+        for (dim, symbol), expo in product(_UNIT_STD.items(), _SIMPLE_EXPONENT):
             if dim * expo != self.dimension:
                 continue
             elements = Compound({UnitElement(symbol): expo}, move_dict=True)
-            return Unit(elements, self.dimension, self.value), self.value
-        return self, 1
+            return Unit(elements, self.dimension, 1)
+        return self
 
     def __eq__(self, other: 'Unit') -> bool:
         '''e.g. N == kg·m/s2'''

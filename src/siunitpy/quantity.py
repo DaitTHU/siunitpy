@@ -67,8 +67,9 @@ def _muldiv(op: Callable, iop: Callable, unitop: Callable[[Unit, Unit], Unit],
             new_value *= new_unit.value
             new_unit = UnitConst.DIMENSIONLESS
         else:
-            new_unit, factor = new_unit.simplify()
-            new_value *= factor
+            old_unit_value = new_unit.value
+            new_unit = new_unit.simplify()
+            new_value *= old_unit_value / new_unit.value
         return Quantity(new_value, new_unit)
 
     def __iop(self: 'Quantity', other: 'Quantity'):
@@ -81,8 +82,9 @@ def _muldiv(op: Callable, iop: Callable, unitop: Callable[[Unit, Unit], Unit],
             self._variable *= self.unit.value
             self._unit = UnitConst.DIMENSIONLESS
         else:
-            self._unit, factor = self.unit.simplify()
-            self._variable *= factor
+            old_unit_value = self.unit.value
+            self._unit = self.unit.simplify()
+            self._variable *= old_unit_value / self.unit.value
         return self
 
     def __rop(self: 'Quantity', other):
@@ -90,11 +92,6 @@ def _muldiv(op: Callable, iop: Callable, unitop: Callable[[Unit, Unit], Unit],
         return Quantity(op(other, self._variable), pm(self.unit))
 
     return __op, __iop, __rop
-
-
-def _unit_deprefix(unit: Unit) -> tuple[Unit, float]: return unit.deprefix()
-def _unit_to_basic(unit: Unit) -> tuple[Unit, float]: return unit.to_basic()
-def _unit_simplify(unit: Unit) -> tuple[Unit, float]: return unit.simplify()
 
 
 class Quantity(Generic[T]):
@@ -166,32 +163,35 @@ class Quantity(Generic[T]):
         self._unit = new_unit
         return self
 
-    def __change_unit(self, unit_fun: Callable[[Unit], tuple[Unit, float]]):
-        new_unit, factor = unit_fun(self.unit)
-        return Quantity(self.variable * factor, new_unit)
-
-    def __ichange_unit(self, unit_fun: Callable[[Unit], tuple[Unit, float]]):
-        self._unit, factor = unit_fun(self.unit)
+    def deprefix_unit(self, *, inplace=False):
+        old_unit_value = self.unit.value
+        new_unit = self.unit.deprefix()
+        factor = old_unit_value / new_unit.value
+        if not inplace:
+            return Quantity(self.variable * factor, new_unit)
+        self._unit = new_unit
         self._variable *= factor
         return self
 
-    def deprefix_unit(self) -> 'Quantity':
-        return self.__change_unit(_unit_deprefix)
+    def to_basic_unit(self, *, inplace=False) -> 'Quantity':
+        old_unit_value = self.unit.value
+        new_unit = self.unit.to_basic()
+        factor = old_unit_value / new_unit.value
+        if not inplace:
+            return Quantity(self.variable * factor, new_unit)
+        self._unit = new_unit
+        self._variable *= factor
+        return self
 
-    def ideprefix_unit(self) -> 'Quantity':
-        return self.__ichange_unit(_unit_deprefix)
-
-    def to_basic_unit(self) -> 'Quantity':
-        return self.__change_unit(_unit_to_basic)
-
-    def ito_basic_unit(self) -> 'Quantity':
-        return self.__ichange_unit(_unit_to_basic)
-
-    def simplify_unit(self) -> 'Quantity':
-        return self.__change_unit(_unit_simplify)
-
-    def isimplify_unit(self) -> 'Quantity':
-        return self.__ichange_unit(_unit_simplify)
+    def simplify_unit(self, *, inplace=False) -> 'Quantity':
+        old_unit_value = self.unit.value
+        new_unit = self.unit.simplify()
+        factor = old_unit_value / new_unit.value
+        if not inplace:
+            return Quantity(self.variable * factor, new_unit)
+        self._unit = new_unit
+        self._variable *= factor
+        return self
 
     def addable(self, other: 'Quantity', /, *, assertTrue=False) -> bool:
         try:

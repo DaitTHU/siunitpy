@@ -6,6 +6,6 @@ from .dimension import Dimension
 from .dimensionconst import DimensionConst
 from .quantity import Quantity
 # from .temperature import degree
-from .unit import Unit, UnitDimensionError
+from .unit import Unit
 from .unitconst import UnitConst
 from .variable import Variable

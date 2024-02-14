@@ -3,7 +3,7 @@ from copy import copy
 from typing import Any, Callable, Generic, TypeVar
 
 from .dimension import Dimension
-from .unit import Unit, UnitDimensionError
+from .unit import Unit
 from .unitconst import UnitConst
 from .utilcollections.abc import Linear
 from .variable import Variable
@@ -11,6 +11,15 @@ from .variable import Variable
 __all__ = ['Quantity']
 
 T = TypeVar('T', bound=Linear[Any, Any])
+
+
+def _check_addable(left: 'Quantity', right: 'Quantity'):
+    try:
+        if left.unit.parallel(right.unit):
+            return
+        raise ValueError(f"dimension {left.dimension} != {right.dimension}.")
+    except AttributeError:
+        raise TypeError(f"'{type(right) = }' must be 'Quantity'.")
 
 
 def _comparison(op: Callable[[float, float], bool]):
@@ -34,7 +43,7 @@ def _addsub(op: Callable, iop: Callable):
     def __op(self: 'Quantity', other: 'Quantity'):
         if self.is_dimensionless() and not isinstance(other, Quantity):
             return Quantity(op(self.variable, other), self.unit)
-        self.addable(other, assertTrue=True)
+        _check_addable(self, other)
         other_var = other.variable * other.unit.value_over(self.unit)
         return Quantity(op(self.variable, other_var), self.unit)
 
@@ -42,7 +51,7 @@ def _addsub(op: Callable, iop: Callable):
         if self.is_dimensionless() and not isinstance(other, Quantity):
             self._variable = iop(self.variable, other)
             return self
-        self.addable(other, assertTrue=True)
+        _check_addable(self, other)
         self._variable = iop(self.variable, other.variable *
                              other.unit.value_over(self.unit))
         return self
@@ -63,7 +72,7 @@ def _muldiv(op: Callable, iop: Callable, unitop: Callable[[Unit, Unit], Unit],
             return Quantity(op(self.variable, other), self.unit)
         new_value = op(self.value, other.value)
         new_unit = unitop(self.unit, other.unit)
-        if new_unit.parallel(UnitConst.DIMENSIONLESS):
+        if new_unit.is_dimensionless():
             new_value *= new_unit.value
             new_unit = UnitConst.DIMENSIONLESS
         else:
@@ -78,7 +87,7 @@ def _muldiv(op: Callable, iop: Callable, unitop: Callable[[Unit, Unit], Unit],
             return self
         self._variable = iop(self.value, other.value)
         self._unit = unitop(self.unit, other.unit)
-        if self.unit.parallel(UnitConst.DIMENSIONLESS):
+        if self.unit.is_dimensionless():
             self._variable *= self.unit.value
             self._unit = UnitConst.DIMENSIONLESS
         else:
@@ -149,16 +158,18 @@ class Quantity(Generic[T]):
         '''unit transform.
         if assertDimension, raise Error when dimension unparallel.'''
         new_unit = Unit.move(new_unit)
-        if assertDimension:
-            self.unit.parallel(new_unit, assertTrue=True)
+        if assertDimension and not self.unit.parallel(new_unit):
+            raise ValueError(
+                f'dimension {self.unit.dimension} != {new_unit.dimension}.')
         factor = self.unit.value_over(new_unit)
         return Quantity(self.variable * factor, new_unit)
 
     def ito(self, new_unit: str | Unit, *, assertDimension=True):
         '''inplace unit transform'''
         new_unit = Unit.move(new_unit)
-        if assertDimension:
-            self.unit.parallel(new_unit, assertTrue=True)
+        if assertDimension and not self.unit.parallel(new_unit):
+            raise ValueError(
+                f'dimension {self.unit.dimension} != {new_unit.dimension}.')
         self._variable *= self.unit.value_over(new_unit)
         self._unit = new_unit
         return self
@@ -192,12 +203,6 @@ class Quantity(Generic[T]):
         self._unit = new_unit
         self._variable *= factor
         return self
-
-    def addable(self, other: 'Quantity', /, *, assertTrue=False) -> bool:
-        try:
-            return self.unit.parallel(other.unit, assertTrue=assertTrue)
-        except AttributeError:
-            raise TypeError(f"type of '{other}' must be 'Quantity'.")
 
     def remove_uncertainty(self) -> 'Quantity':
         return Quantity(self.value, self.unit)
@@ -234,8 +239,7 @@ class Quantity(Generic[T]):
 
     def __rpow__(self, other):
         if not self.is_dimensionless():
-            raise UnitDimensionError(
-                "Quantity must be dimensionless as exponent.")
+            raise ValueError("Quantity must be dimensionless as exponent.")
         return other ** self.value
 
     def nthroot(self, n: int):

@@ -28,14 +28,14 @@ class TestUnit(unittest.TestCase):
 
     def test_operation(self):
         u0 = Unit("MeV/c")
-        u1, factor1 = u0.deprefix()
+        u1, factor1 = u0.deprefix_with_factor()
         self.assertEqual(u1.symbol, "eV/c")
         self.assertEqual(factor1, 1000_000)
-        u2, factor2 = u0.to_basic()
+        u2, factor2 = u0.to_basic_with_factor()
         self.assertEqual(u2.symbol, "m·kg/s")
         self.assertEqual(factor2, 5.3442859926783075e-22)
         self.assertEqual(u0.value_over(Unit(u2.symbol)), factor2)
-        u3, factor3 = Unit("V/mA").simplify()
+        u3, factor3 = Unit("V/mA").simplify_with_factor()
         self.assertEqual(u3.symbol, "Ω")
         self.assertEqual(factor3, 1000)
         um = UnitConst.METER

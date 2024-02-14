@@ -6,9 +6,9 @@ from .value_archive import *
 
 __all__ = [
     '_PI', '_WEIN_ZERO',
-    '_PREFIX', '_PREFIX_FULLNAME',
+    '_PREFIX_DATA', '_PREFIX_FULLNAME',
     '_BASIC_SI',
-    '_UNIT', '_UNIT_FULLNAME', '_UNIT_STD'
+    '_UNIT_DATA', '_UNIT_FULLNAME', '_UNIT_STD'
 ]
 
 
@@ -32,7 +32,7 @@ _SSP = 100000               # standard-state pressure
 _MMHG = _ATM / 760          # 1 mmHg = 1 atm / 760
 
 
-_PREFIX: dict[str, PrefixData] = {
+_PREFIX_DATA: dict[str, PrefixData] = {
     # whole unit
     'Q': PrefixData('quetta', 1e30),
     'R': PrefixData('ronna', 1e27),
@@ -62,7 +62,7 @@ _PREFIX: dict[str, PrefixData] = {
     'q': PrefixData('quecto', 1e-30),
 }
 
-_PREFIX_FULLNAME: dict[str, str] = {v.fullname: k for k, v in _PREFIX.items()}
+_PREFIX_FULLNAME: dict[str, str] = {v.fullname: k for k, v in _PREFIX_DATA.items()}
 
 
 _SPECIAL_DIMENSIONLESS: dict[str, float] = {
@@ -149,7 +149,7 @@ __UNIT_LIB: dict[Dimension, dict[str, BaseData]] = {
         'Pa': BaseData('pascal', 1),
         'bar': BaseData('bar', _SSP),
         'atm': BaseData('standard-atmosphere', _ATM),
-        'mHg': BaseData('millimeter-of-mercury', _MMHG * 1000),
+        'mHg': BaseData('meter-of-mercury', _MMHG * 1000),
         'Torr': BaseData('torr', _MMHG),  # Torricelli
     },
     DimensionConst.ENERGY: {
@@ -177,7 +177,7 @@ __UNIT_LIB: dict[Dimension, dict[str, BaseData]] = {
     DimensionConst.CATALYTIC_ACTIVITY: {'kat': BaseData('katal', 1), },
 }
 
-_UNIT: dict[str, UnitData] = {
+_UNIT_DATA: dict[str, UnitData] = {
     unit: UnitData(dim, val)
     for dim, unit_val in __UNIT_LIB.items()
     for unit, val in unit_val.items()

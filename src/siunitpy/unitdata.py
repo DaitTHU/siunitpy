@@ -1,5 +1,3 @@
-import sys
-
 from .dimension import Dimension
 from .utilcollections.constclass import ConstClass
 
@@ -24,12 +22,10 @@ class SymbolData:
     def value(self): return self._value
 
 
-if sys.version_info >= (3, 12):
-    # type PrefixData = SymbolData
-    ...
-else:
-    from typing import TypeAlias
-    PrefixData: TypeAlias = SymbolData
+class PrefixData(SymbolData):
+    __slots__ = ()
+    @property
+    def factor(self): return self._value
 
 
 class BaseData(SymbolData):
@@ -56,6 +52,6 @@ class UnitData:
     @property
     def fullname(self): return self._base_data.fullname
     @property
-    def factor(self): return self._base_data.value
+    def value(self): return self._base_data.value
     @property
     def never_prefix(self): return self._base_data.never_prefix

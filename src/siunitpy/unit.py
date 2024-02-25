@@ -79,7 +79,7 @@ class Unit:
         elif isinstance(symbol, Compound):
             self._elements = symbol  # no copy
         else:
-            raise TypeError(f"elements' type must be 'Compound'.")
+            raise TypeError("Constructor takes only one argument.")
         self._dimension = dimension
         self._value = value
 
@@ -93,15 +93,16 @@ class Unit:
     def value(self) -> float: return self._value
 
     def __repr__(self) -> str:
-        return self.__class__.__name__ + f'({self.symbol}, ' \
-            f'dim={self.dimension}, value={self.value})'
+        return '{}({}, dim={}, value={})'.format(
+            self.__class__.__name__, self.symbol, self.dimension, self.value
+        )
 
     def __str__(self) -> str: return self.symbol
 
     def __hash__(self) -> int: return hash(self.symbol)
 
     @staticmethod
-    def simple(symbol): 
+    def simple(symbol):
         if symbol in _UNIT_SIMPLE:
             return _UNIT_SIMPLE[symbol]
         return Unit(symbol)

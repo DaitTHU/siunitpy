@@ -137,8 +137,9 @@ class Variable(Generic[T]):
         return Interval.neighborhood(self.value, self.uncertainty)  # type: ignore
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({repr(self.value)}, " \
-            f"uncertainty={repr(self.uncertainty)})"
+        return '{}({}, uncertainty={})'.format(
+            self.__class__.__name__, self.value, self.uncertainty
+        )
 
     def __str__(self) -> str:
         if self.is_exact():

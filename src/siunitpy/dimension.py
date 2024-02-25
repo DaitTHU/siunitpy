@@ -64,7 +64,7 @@ class Dimension:
 
     def __repr__(self) -> str:
         para = ', '.join(f'{var}={val}' for var, val in zip(_DIM_VAR, self))
-        return f'{self.__class__.__name__}({para})'
+        return '{}({})'.format(self.__class__.__name__, para)
 
     def __str__(self) -> str: return '(' + ', '.join(map(str, self)) + ')'
 

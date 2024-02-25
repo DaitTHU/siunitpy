@@ -30,8 +30,8 @@ from .utilcollections.utils import superscript as sup
 __all__ = ['_resolve', '_combine', '_combine_fullname']
 
 _UNIT_SEP = re.compile(r'[/.·]+')
-_UNIT_EXPO = re.compile(r'[0-9+-]+$')
-_UNIT_STR = re.compile(r'[^0-9 +-]+')
+_UNIT_EXPO = re.compile(r'[+-]?[0-9]+$')
+_REMOVE = re.compile(r'\s|[+-]?[0-9]+$')
 
 # special single char
 _SPECIAL_CHAR = {
@@ -40,7 +40,7 @@ _SPECIAL_CHAR = {
     '٪': '%', '⁒': '%',
     "'": '′', '"': '″',
 } | {s: str(i) for i, s in enumerate(_SUPERSCRIPT)}
-_SPECIAL_PAT = re.compile('[' + ''.join(_SPECIAL_CHAR) + ']')
+_SPECIAL_PAT = re.compile('[{}]'.format(''.join(_SPECIAL_CHAR)))
 
 
 def _resolve(symbol: str, /) -> Compound[UnitElement]:
@@ -58,8 +58,7 @@ def _resolve(symbol: str, /) -> Compound[UnitElement]:
             neg_after(expo, i)  # you can use ElementWiseList
             break
     # remove exponent
-    unit_match_gen = (_UNIT_STR.search(unite) for unite in unites)
-    unit_gen = (UnitElement(um.group()) for um in unit_match_gen if um)
+    unit_gen = (UnitElement(_REMOVE.sub('', unite)) for unite in unites)
     for unit, e in zip(unit_gen, expo):
         if e != 0:
             elements[unit] += e  # merge the same units

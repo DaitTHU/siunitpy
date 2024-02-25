@@ -132,9 +132,9 @@ class Quantity(Generic[T]):
     def dimension(self) -> Dimension: return self.unit.dimension
 
     def __repr__(self) -> str:
-        return self.__class__.__name__ \
-            + f'(value={repr(self.value)}, uncertainty={self.uncertainty}, '\
-            f'unit={self.unit})'
+        return '{}(value={}, uncertainty={}, unit={})'.format(
+            self.__class__.__name__, self.value, self.uncertainty, self.unit
+        )
 
     def __str__(self) -> str:
         if self.unit == UnitConst.DIMENSIONLESS:

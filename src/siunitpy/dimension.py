@@ -1,19 +1,18 @@
-# TODO: add Fraction
-
 import operator
 from fractions import Fraction
 from typing import Callable, Iterable, SupportsIndex
 
 from .utilcollections.utils import _inplace, common_rational
+from .utilcollections.utils import superscript as sup
 
 __all__ = ['Dimension']
 
-_DIM_VAR = ('L', 'M', 'T', 'I', 'H', 'N', 'J')
-_DIM_NUM = len(_DIM_VAR)
+_DIM_SYMBOL = ('T', 'L', 'M', 'I', 'H', 'N', 'J')
+_DIM_NUM = len(_DIM_SYMBOL)
 
 
 def _unpack_vector():
-    def __getter(i): return lambda self: self[i]  # closure
+    def __getter(i: int): return lambda self: self[i]  # closure
     return (property(__getter(i)) for i in range(_DIM_NUM))
 
 
@@ -44,8 +43,8 @@ def _scalar_mul(op: Callable[[Fraction, int | Fraction], Fraction]):
 class Dimension:
     __slots__ = ('__vector',)
 
-    def __init__(self, L=0, M=0, T=0, I=0, H=0, N=0, J=0) -> None:
-        dimension_vector = (L, M, T, I, H, N, J)
+    def __init__(self, T=0, L=0, M=0, I=0, H=0, N=0, J=0) -> None:
+        dimension_vector = (T, L, M, I, H, N, J)
         self.__vector = tuple(map(common_rational, dimension_vector))
 
     @classmethod
@@ -58,15 +57,16 @@ class Dimension:
 
     def __iter__(self): return iter(self.__vector)
 
-    L, M, T, I, H, N, J = _unpack_vector()
-    length, mass, time, electric_current, thermodynamic_temperature, \
-        amount_of_substance, luminous_intensity = L, M, T, I, H, N, J
+    T, L, M, I, H, N, J = _unpack_vector()
+    time, length, mass, electric_current, thermodynamic_temperature, \
+        amount_of_substance, luminous_intensity = T, L, M, I, H, N, J
 
     def __repr__(self) -> str:
-        para = ', '.join(f'{var}={val}' for var, val in zip(_DIM_VAR, self))
+        para = ', '.join(f'{s}={v}' for s, v in zip(_DIM_SYMBOL, self))
         return '{}({})'.format(self.__class__.__name__, para)
 
-    def __str__(self) -> str: return '(' + ', '.join(map(str, self)) + ')'
+    def __str__(self) -> str: 
+        return ''.join(s + sup(v) for s, v in zip(_DIM_SYMBOL, self) if v)
 
     def __len__(self) -> int: return _DIM_NUM
 
@@ -88,9 +88,9 @@ class Dimension:
 
 if __name__ == '__main__':
     a = '''
+    time
     length
     mass
-    time
     electric current
     thermodynamic temperature
     amount of substance

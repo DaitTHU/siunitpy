@@ -11,9 +11,9 @@ class DimensionConst(ConstClass):
     like energy and work, have to share the same name `ENERGY`. 
     '''
     DIMENSIONLESS = Dimension()
+    TIME = Dimension(T=1)
     LENGTH = Dimension(L=1)
     MASS = Dimension(M=1)
-    TIME = Dimension(T=1)
     ELECTRIC_CURRENT = Dimension(I=1)
     THERMODYNAMIC_TEMPERATURE = Dimension(H=1)
     AMOUNT_OF_SUBSTANCE = Dimension(N=1)

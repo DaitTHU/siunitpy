@@ -8,8 +8,7 @@ from src.siunitpy import Dimension, DimensionConst, Unit, UnitConst
 class TestUnit(unittest.TestCase):
     def test_init(self):
         u0 = Unit('kg.m/s2')
-        self.assertEqual(
-            repr(u0), 'Unit(kg·m/s², dim=(1, 1, -2, 0, 0, 0, 0), value=1)')
+        self.assertEqual(repr(u0), 'Unit(kg·m/s², dim=T⁻²LM, value=1)')
         self.assertEqual(u0.symbol, 'kg·m/s²')
         self.assertEqual(u0.dimension, DimensionConst.FORCE)
         self.assertEqual(u0.value, 1)
@@ -23,7 +22,7 @@ class TestUnit(unittest.TestCase):
         self.assertEqual(repr(u3), repr(u3))
         u4 = Unit('T.W/m2.K4')
         self.assertEqual(u4.symbol, 'T·W/m²·K⁴')
-        self.assertEqual(u4.dimension, Dimension(0, 2, -5, -1, -4, 0, 0))
+        self.assertEqual(u4.dimension, Dimension(-5, 0, 2, -1, -4, 0, 0))
         self.assertEqual(u4.value, 1)
 
     def test_operation(self):

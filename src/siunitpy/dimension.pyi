@@ -6,11 +6,11 @@ __all__ = ['Dimension']
 
 class Dimension:
     '''`Dimension` is like a 7-len `namedtuple`, the field is
+    - `T`: time
     - `L`: length
     - `M`: mass
-    - `T`: time
     - `I`: electric current
-    - `H`: thermodynamic temperature (Θ)
+    - `H`: thermodynamic temperature (= Θ)
     - `N`: amount of substance
     - `J`: luminous intensity
 
@@ -28,35 +28,35 @@ class Dimension:
     ---
     a `Dimension` object is a linear vector in 7-dimension, so the
     operation is the same as vector in linear algebra.
-    >>> -force_dim                              # (-1, -1, 2, 0, ...)
-    >>> power_dim = force_dim + vilocity_dim    # (2, 1, -3, 0, ...)
-    >>> 2 * vilocity_dim                        # (2, 0, -2, ...)
+    >>> -force_dim                              # T⁻²LM
+    >>> power_dim = force_dim + vilocity_dim    # T⁻³L²M
+    >>> 2 * vilocity_dim                        # T⁻²L²
     '''
 
-    def __init__(self, L=0, M=0, T=0, I=0, H=0, N=0, J=0) -> None:
+    def __init__(self, T=0, L=0, M=0, I=0, H=0, N=0, J=0) -> None:
         '''construct a `Dimension` object using 7 int/Fraction arguments, 
         default 0.
         >>> time_dim = Dimension(T=1)
-        >>> vilocity_dim = Dimension(1, 0, -1)
+        >>> vilocity_dim = Dimension(-1, 1)
 
         You can also use classmethod `Dimension.unpack` to construct a 
         `Dimension` object from a iterable or dict.
-        >>> force_dim = Dimension.unpack([1, 1, -2])
+        >>> force_dim = Dimension.unpack([-2, 1, 1])
         >>> charge_dim = Dimension.unpack({'I': 1, 'T': 1})
         '''
 
     @classmethod
     def unpack(cls, iterable: Iterable[int] |
-               dict[Literal['L', 'M', 'T', 'I', 'H', 'N', 'J'], int], /) -> Dimension: ...
+               dict[Literal['T', 'L', 'M', 'I', 'H', 'N', 'J'], int], /) -> Dimension: ...
 
     def __getitem__(self, key: SupportsIndex) -> Fraction: ...
     def __iter__(self) -> Iterator[Fraction]: ...
     @property
+    def T(self) -> Fraction: '''time'''
+    @property
     def L(self) -> Fraction: '''length'''
     @property
     def M(self) -> Fraction: '''mass'''
-    @property
-    def T(self) -> Fraction: '''time'''
     @property
     def I(self) -> Fraction: '''electric current'''
     @property
@@ -66,11 +66,11 @@ class Dimension:
     @property
     def J(self) -> Fraction: '''luminous intensity'''
     @property
+    def time(self) -> Fraction: ...
+    @property
     def length(self) -> Fraction: ...
     @property
     def mass(self) -> Fraction: ...
-    @property
-    def time(self) -> Fraction: ...
     @property
     def electric_current(self) -> Fraction: ...
     @property

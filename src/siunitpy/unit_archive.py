@@ -73,7 +73,7 @@ _LOGARITHMIC_RATIO: dict[str, str] = {
     'Np': 'neper', 'B': 'bel'
 }
 
-_BASIC_SI = ('m', 'kg', 's', 'A', 'K', 'mol', 'cd')
+_BASIC_SI = ('s', 'm', 'kg', 'A', 'K', 'mol', 'cd')
 
 # unit library, classified by dimension
 # it should appear and be used only in this file

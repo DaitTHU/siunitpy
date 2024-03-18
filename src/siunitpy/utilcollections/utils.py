@@ -24,7 +24,9 @@ _SUPERSCRIPT = '⁰¹²³⁴⁵⁶⁷⁸⁹'
 _SUBSCRIPT = '₀₁₂₃₄₅₆₇₈₉'
 
 
-def superscript(ratio: Fraction) -> str:
+def superscript(ratio: Fraction | int) -> str:
+    '''turn a number (Fraction/int) into superscript, 
+    like 2 -> ², -1 -> ⁻¹, 3/4 -> ³ᐟ⁴, etc.'''
     if ratio.numerator < 0:
         return '⁻¹' if ratio == -1 else '⁻' + superscript(-ratio)
     if ratio == 1:
@@ -70,13 +72,15 @@ def unzip(iterable: Iterable):
 
 
 def firstof(iterable: Iterable[T], /, default: T) -> T:
+    '''return the first item of an iterable.'''
     for item in iterable:
         return item
     return default
 
 
 def neg_after(ls: list, idx: int) -> None:
-    for i in range(len(ls))[idx + 1:]:
+    '''negate items in-place after an index (exclusive) in the list.'''
+    for i in range(idx + 1, len(ls)):
         ls[i] = -ls[i]
 
 

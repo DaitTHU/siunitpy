@@ -1,11 +1,10 @@
 import operator
 import sys
 from copy import copy
-from math import sqrt
 from typing import Any, Callable, Generic, Optional, Sequence, TypeVar
 
 from .utilcollections import Interval
-from .utilcollections.abc import Linear, Cardinal
+from .utilcollections.abc import Cardinal, Linear
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -23,9 +22,7 @@ def _hypotenuse(a: T | None, b: T | None) -> T | None:
         return b
     if b is None:
         return a
-    if isinstance(a, float) and isinstance(b, float):
-        return sqrt(a**2 + b**2)  # type: ignore
-    return None
+    return (a**2 + b**2)**0.5
 
 
 def _comparison(op: Callable[[T, T], bool]):
@@ -129,12 +126,12 @@ class Variable(Generic[T]):
         self.uncertainty = self.value * rel_unc
 
     @property
-    def confidence_interval(self) -> Interval[T]:  # type: ignore
+    def confidence_interval(self) -> Interval[T]:
         if not isinstance(self.value, Cardinal):
             raise TypeError('interval ends must be cardinal.')
         if self.uncertainty is None:
             return Interval(self.value, self.value)
-        return Interval.neighborhood(self.value, self.uncertainty)  # type: ignore
+        return Interval.neighborhood(self.value, self.uncertainty)
 
     def __repr__(self) -> str:
         return '{}({}, uncertainty={})'.format(

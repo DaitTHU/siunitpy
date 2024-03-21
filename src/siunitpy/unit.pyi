@@ -61,7 +61,7 @@ class Unit:
         - illegal expression example: 
 
         >>> Unit('x')   # UnitSymbolError: 'x' is not a valid unit.
-        >>> Unit('m+m') # 'm', because only substr before '+' is element
+        >>> Unit('m+m') # UnitSymbolError: 'm+m' is not a valid element unit.
         '''
     
     @property

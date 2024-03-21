@@ -31,7 +31,7 @@ __all__ = ['_resolve', '_combine', '_combine_fullname']
 
 _UNIT_SEP = re.compile(r'[/.·]+')
 _UNIT_EXPO = re.compile(r'[+-]?[0-9]+$')
-_REMOVE = re.compile(r'\s|[+-]?[0-9]+$')
+_REMOVE = re.compile(r'\s|\^?[+-]?[0-9]+$')
 
 # special single char
 _SPECIAL_CHAR = {

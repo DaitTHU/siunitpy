@@ -30,6 +30,7 @@ _PC = _AU / _ARCSEC         # parsec
 _ATM = 101325               # standard atmosphere
 _SSP = 100000               # standard-state pressure
 _MMHG = _ATM / 760          # 1 mmHg = 1 atm / 760
+_CAL = 4.184                # calorie
 
 
 _PREFIX_DATA: dict[str, PrefixData] = {
@@ -110,10 +111,9 @@ __UNIT_LIB: dict[Dimension, dict[str, BaseData]] = {
     },
     DimensionConst.THERMODYNAMIC_TEMPERATURE: {
         'K': BaseData('kelvin', 1),
-        # TODO: remove degree Celsius(°C), Fahrenheit(°F).
-        # '°C': BaseData('degree-Celsius', 1, never_prefix=True),
-        # '°F': BaseData('degree-Fahrenheit', 5/9, never_prefix=True),
-        # '°R': BaseData('degree-Rankine', 1.8, never_prefix=True)
+        '°C': BaseData('degree-Celsius', 1, never_prefix=True),
+        '°F': BaseData('degree-Fahrenheit', 5/9, never_prefix=True),
+        '°R': BaseData('degree-Rankine', 1.8, never_prefix=True)
     },
     DimensionConst.AMOUNT_OF_SUBSTANCE: {
         'mol': BaseData('mole', 1),
@@ -156,7 +156,9 @@ __UNIT_LIB: dict[Dimension, dict[str, BaseData]] = {
         'J': BaseData('joule', 1),
         'Wh': BaseData('watthour', _HOUR),
         'eV': BaseData('electronvolt', _EV),
-        'cal': BaseData('calorie', 4.184),
+        'cal': BaseData('calorie', _CAL),
+        'g-TNT': BaseData('gram-of-TNT', _CAL * 1000),
+        't-TNT': BaseData('ton-of-TNT', _CAL * 1e9),
     },
     DimensionConst.POWER: {'W': BaseData('watt', 1), },
     # DimensionConst.MOMENTUM

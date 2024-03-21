@@ -8,7 +8,7 @@ from .variable import Variable
 
 __all__ = ['Quantity']
 
-T = TypeVar('T', bound=Linear)
+T = TypeVar('T')
 
 
 class Quantity(Generic[T]):

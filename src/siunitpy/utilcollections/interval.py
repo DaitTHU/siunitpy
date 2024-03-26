@@ -1,10 +1,10 @@
-from typing import Any, Generic, TypeVar
+from typing import Generic, TypeVar
 
 from .abc.ordinal import Cardinal
 
 __all__ = ['Interval']
 
-T = TypeVar('T', bound=Cardinal[Any, Any])
+T = TypeVar('T', bound=Cardinal)
 
 
 class Interval(Generic[T]):
@@ -16,8 +16,8 @@ class Interval(Generic[T]):
         self._lo, self._hi = lo, hi
 
     @classmethod
-    def neighborhood(cls, center: T, radius: T) -> 'Interval':
-        return Interval(center - radius, center + radius)
+    def neighborhood(cls, center: T, radius: T):
+        return cls(center - radius, center + radius)
 
     @property
     def lo(self) -> T: return self._lo
@@ -48,3 +48,5 @@ class Interval(Generic[T]):
 
     def __eq__(self, other: 'Interval') -> bool:
         return self.lo == other.lo and self.hi == other.hi
+    
+    def __hash__(self) -> int: return hash((self.lo, self.hi))

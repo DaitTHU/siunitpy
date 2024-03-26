@@ -1,10 +1,10 @@
-from typing import Any, Generic, TypeVar
+from typing import Generic, TypeVar
 
 from .abc.ordinal import Cardinal
 
 __all__ = ['Interval']
 
-T = TypeVar('T', bound=Cardinal[Any, Any])
+T = TypeVar('T', bound=Cardinal)
 
 
 class Interval(Generic[T]):
@@ -26,5 +26,6 @@ class Interval(Generic[T]):
     def lohalf(self) -> Interval[T]: ...
     def hihalf(self) -> Interval[T]: ...
     def __eq__(self, other: Interval) -> bool: ...
+    def __hash__(self) -> int: ...
 
 

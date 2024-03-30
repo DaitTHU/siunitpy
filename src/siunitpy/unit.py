@@ -165,6 +165,9 @@ class Unit:
         e.g. the standard unit of voltage is V.
         '''
         return self.simplify_with_factor()[0]
+    
+    def __hash__(self) -> int:
+        return hash((self.dimension, self.value))
 
     def __eq__(self, other: 'Unit') -> bool:
         '''e.g. N == kg·m/s2'''

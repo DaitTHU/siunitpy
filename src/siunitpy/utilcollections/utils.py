@@ -1,4 +1,3 @@
-import sys
 from decimal import Decimal
 from fractions import Fraction
 from typing import Callable, Iterable, TypeVar, overload
@@ -13,11 +12,9 @@ T = TypeVar('T')
 T_1, T_2, T_3 = TypeVar('T_1'), TypeVar('T_2'), TypeVar('T_3')
 K, V = TypeVar('K'), TypeVar('V')
 
-if sys.version_info >= (3, 12):
-    ...
-else:
-    from typing import TypeAlias
-    Number: TypeAlias = int | float | Decimal | Fraction
+from typing import TypeAlias
+
+Number: TypeAlias = int | float | Decimal | Fraction
 
 
 _SUPERSCRIPT = '⁰¹²³⁴⁵⁶⁷⁸⁹'

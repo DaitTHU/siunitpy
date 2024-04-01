@@ -77,10 +77,14 @@ class UnitElement:
     def __repr__(self) -> str: 
         return '{}({}-{})'.format(self.prefix, self.base)
     
-    def __hash__(self) -> int: return hash(self.symbol)
+    def __hash__(self) -> int: return hash((self.prefix, self.base))
 
     def __eq__(self, other: 'UnitElement') -> bool:
         return self.symbol == other.symbol
+    
+    def __le__(self, other: 'UnitElement'):
+        # TODO: the order of unit-element
+        pass
 
 
 class UnitSymbolError(ValueError):

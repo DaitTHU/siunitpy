@@ -16,7 +16,7 @@ def _unpack_vector():
     return (property(__getter(i)) for i in range(_DIM_NUM))
 
 
-def _unary_op(op: Callable[[Fraction], Fraction]):
+def _unary(op: Callable[[Fraction], Fraction]):
     '''unary operation: +v, -v.'''
 
     def __op(self: 'Dimension') -> 'Dimension':
@@ -75,8 +75,8 @@ class Dimension:
     def __eq__(self, other: 'Dimension') -> bool:
         return self.__vector == other.__vector
 
-    __pos__ = _unary_op(operator.pos)
-    __neg__ = _unary_op(operator.neg)
+    __pos__ = _unary(operator.pos)
+    __neg__ = _unary(operator.neg)
 
     __add__, __iadd__ = _vector_add(operator.add)
     __sub__, __isub__ = _vector_add(operator.sub)

@@ -99,8 +99,6 @@ class Unit:
 
     def __str__(self) -> str: return self.symbol
 
-    def __hash__(self) -> int: return hash(self.symbol)
-
     @staticmethod
     def simple(symbol):
         if symbol in _UNIT_SIMPLE:

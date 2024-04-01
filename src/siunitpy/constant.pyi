@@ -1,6 +1,7 @@
 from typing import Any, TypeVar, overload
 
 from .dimension import Dimension
+from .identity import Zero, zero
 from .quantity import Quantity
 from .unit import Unit
 from .unitconst import UnitConst
@@ -9,7 +10,7 @@ from .variable import Variable
 
 __all__ = ['Constant', 'constant']
 
-T = TypeVar('T', bound=Linear[Any, Any])
+T = TypeVar('T', bound=Linear)
 
 
 class Constant(Quantity[T]):
@@ -17,7 +18,7 @@ class Constant(Quantity[T]):
     @overload
     def __init__(self, value: T, /,
                  unit: str | Unit = UnitConst.DIMENSIONLESS,
-                 uncertainty: T | None = None) -> None:
+                 uncertainty: T | Zero = zero) -> None:
         '''set value, unit, and uncertainty.'''
     @overload
     def __init__(self, variable: Variable[T], /,
@@ -30,11 +31,13 @@ class Constant(Quantity[T]):
     @property
     def value(self) -> T: ...
     @property
+    def uncertainty(self) -> T | Zero: ...
+    @property
+    def relative_uncertainty(self) -> T | Zero: ...
+    @property
     def unit(self) -> Unit: ...
     @property
     def dimension(self) -> Dimension: ...
-    @property
-    def uncertainty(self) -> T: ...
     def __repr__(self) -> str: ...
     def __str__(self) -> str: ...
     def __format__(self, format_spec: str) -> str: ...

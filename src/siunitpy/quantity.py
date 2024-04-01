@@ -3,6 +3,7 @@ from copy import copy
 from typing import Any, Callable, Generic, TypeVar
 
 from .dimension import Dimension
+from .identity import Zero, zero
 from .unit import Unit
 from .unitconst import UnitConst
 from .utilcollections.abc import Linear
@@ -10,7 +11,7 @@ from .variable import Variable
 
 __all__ = ['Quantity']
 
-T = TypeVar('T', bound=Linear[Any, Any])
+T = TypeVar('T', bound=Linear)
 
 
 def _check_addable(left: 'Quantity', right: 'Quantity'):
@@ -29,7 +30,7 @@ def _comparison(op: Callable[[float, float], bool]):
     return __op
 
 
-def _unary_op(op: Callable):
+def _unary(op: Callable):
     def __op(self: 'Quantity'):
         return Quantity(op(self.variable), self.unit)
     return __op
@@ -70,30 +71,28 @@ def _muldiv(op: Callable, iop: Callable, unitop: Callable[[Unit, Unit], Unit],
     def __op(self: 'Quantity', other: 'Quantity'):
         if not isinstance(other, Quantity):
             return Quantity(op(self.variable, other), self.unit)
-        new_value = op(self.value, other.value)
+        new_variable = op(self.variable, other.variable)
         new_unit = unitop(self.unit, other.unit)
         if new_unit.is_dimensionless():
-            new_value *= new_unit.value
+            new_variable *= new_unit.value
             new_unit = UnitConst.DIMENSIONLESS
         else:
-            old_unit_value = new_unit.value
-            new_unit = new_unit.simplify()
-            new_value *= old_unit_value / new_unit.value
-        return Quantity(new_value, new_unit)
+            new_unit, factor = new_unit.simplify_with_factor()
+            new_variable *= factor
+        return Quantity(new_variable, new_unit)
 
     def __iop(self: 'Quantity', other: 'Quantity'):
         if not isinstance(other, Quantity):
-            self._variable = iop(self.value, other)
+            self._variable = iop(self.variable, other)
             return self
-        self._variable = iop(self.value, other.value)
+        self._variable = iop(self.variable, other.variable)
         self._unit = unitop(self.unit, other.unit)
         if self.unit.is_dimensionless():
             self._variable *= self.unit.value
             self._unit = UnitConst.DIMENSIONLESS
         else:
-            old_unit_value = self.unit.value
-            self._unit = self.unit.simplify()
-            self._variable *= old_unit_value / self.unit.value
+            self._unit, factor = self.unit.simplify_with_factor()
+            self._variable *= factor
         return self
 
     def __rop(self: 'Quantity', other):
@@ -108,7 +107,7 @@ class Quantity(Generic[T]):
 
     def __init__(self, value: T | Variable[T], /,
                  unit: str | Unit = UnitConst.DIMENSIONLESS,
-                 uncertainty: T | None = None) -> None:
+                 uncertainty: T | Zero = zero) -> None:
         if not isinstance(unit, (str, Unit)):
             raise TypeError(f"{type(unit) = } is not 'str' or 'Unit'.")
         if isinstance(value, Variable):
@@ -125,7 +124,12 @@ class Quantity(Generic[T]):
     @property
     def value(self) -> T: return self.variable.value
     @property
-    def uncertainty(self) -> T | None: return self.variable.uncertainty
+    def uncertainty(self) -> T | Zero: return self.variable.uncertainty
+
+    @property
+    def relative_uncertainty(self) -> T | Zero:
+        return self.variable.relative_uncertainty
+
     @property
     def unit(self) -> Unit: return self._unit
     @property
@@ -214,8 +218,8 @@ class Quantity(Generic[T]):
     __ge__ = _comparison(operator.ge)
     __le__ = _comparison(operator.le)
 
-    __pos__ = _unary_op(operator.pos)
-    __neg__ = _unary_op(operator.neg)
+    __pos__ = _unary(operator.pos)
+    __neg__ = _unary(operator.neg)
 
     __add__, __iadd__ = _addsub(operator.add, operator.iadd)
     __sub__, __isub__ = _addsub(operator.sub, operator.isub)

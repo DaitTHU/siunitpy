@@ -2,6 +2,7 @@ import sys
 import unittest
 
 from src.siunitpy import Variable
+from src.siunitpy.identity import zero
 from src.siunitpy.utilcollections import Interval
 
 
@@ -10,9 +11,9 @@ class TestVariable(unittest.TestCase):
     def test_init(self):
         v0 = Variable(100)
         self.assertEqual(v0.value, 100)
-        self.assertEqual(v0.uncertainty, None)
+        self.assertEqual(v0.uncertainty, zero)
         self.assertEqual(v0.confidence_interval, Interval(100, 100))
-        self.assertEqual(repr(v0), 'Variable(100, uncertainty=None)')
+        self.assertEqual(repr(v0), 'Variable(100, uncertainty=0)')
         self.assertEqual(str(v0), '100')
         v1 = Variable(10.0, 0.1)
         self.assertEqual(v1.uncertainty, 0.1)

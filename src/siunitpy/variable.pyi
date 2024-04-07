@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, overload
 
 from .identity import Zero, zero
 from .utilcollections import Interval
@@ -16,17 +16,19 @@ class Variable(Generic[T]):
     The `uncertainty` can be expressed in a number of ways, like absolute error
     or standard deviation. However, the most general way of characterizing
     uncertainty uncertainty is by specifying its probability distribution.
+
+    `relative_uncertainty` = `uncertainty` / `value`, but it's meaningless
+    to call this property when `value` <= 0
     '''
-
-    def __init__(self, value: T, /, uncertainty: T | Zero = zero, *,
-                 relative_uncertainty: T | Zero = zero) -> None:
-        '''construct `Variable` object by giving its value and uncertainty 
-        (or relative uncertainty), default zero.
-
-        `uncertainty` and `relative_uncertainty` should not
-        be assigned at the same time to avoid conflicts. 
-        If so, `relative_uncertainty` would be ignored.
-        '''
+    @overload
+    def __new__(cls, value: float, /) -> Variable[float]: 
+        '''set exact value without uncertainty.'''
+    @overload
+    def __new__(cls, value: T, /, uncertainty: T | Zero = zero) -> Variable[T]: 
+        '''set variable with uncertainty.'''
+    @overload
+    def __new__(cls, value: T, /, *, relative_uncertainty: T) -> Variable[T]: 
+        '''set variable with relative uncertainty'''
     @property
     def value(self) -> T: ...
     @value.setter

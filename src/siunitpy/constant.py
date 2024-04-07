@@ -15,15 +15,6 @@ class Constant(Quantity[T]):
     def ito(self, new_unit: str | Unit, *, assertDimension=True) -> NoReturn:
         raise AttributeError('ito() is deleted, please use to().')
 
-    def ideprefix_unit(self) -> NoReturn:
-        raise AttributeError('ito_...() is deleted, please use to_...().')
-
-    def ito_basic_unit(self) -> NoReturn:
-        raise AttributeError('ito_...() is deleted, please use to_...().')
-
-    def isimplify_unit(self) -> NoReturn:
-        raise AttributeError('itry_...() is deleted, please use try_...().')
-
     __iadd__ = _inplace(operator.add)  # type: ignore
     __isub__ = _inplace(operator.sub)  # type: ignore
     __imul__ = _inplace(operator.mul)  # type: ignore
@@ -33,6 +24,6 @@ class Constant(Quantity[T]):
     __ipow__ = _inplace(operator.pow)  # type: ignore
 
 
-def constant(quantity: Quantity[T]) -> Constant[T]:
+def constant(quantity: Quantity[T]):
     '''to make a Quantity object to a Constant.'''
     return Constant(quantity.variable, quantity.unit)

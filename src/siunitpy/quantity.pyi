@@ -29,16 +29,29 @@ class Quantity(Generic[T]):
     >>> Quantity(1.6e-19, 'C')
     '''
     @overload
-    def __init__(self, value: T, /,
-                 unit: str | Unit = UnitConst.DIMENSIONLESS,
-                 uncertainty: T | Zero = zero) -> None:
+    def __new__(cls, value: float, /, 
+                unit: str | Unit = UnitConst.DIMENSIONLESS
+                ) -> Quantity[float]:
+        '''exact quantity, default unit is dimensionless.'''
+    @overload
+    def __new__(cls, value: T, /, 
+                unit: str | Unit = UnitConst.DIMENSIONLESS,
+                uncertainty: T | Zero = zero
+                ) -> Quantity[T]:
         '''set value, unit, and uncertainty.'''
     @overload
-    def __init__(self, variable: Variable[T], /,
-                 unit: str | Unit = UnitConst.DIMENSIONLESS) -> None:
+    def __new__(cls, value: T, /, 
+                unit: str | Unit = UnitConst.DIMENSIONLESS, *,
+                relative_uncertainty: T
+                ) -> Quantity[T]:
+        '''set value, unit, and relative uncertainty.'''
+    @overload
+    def __new__(cls, variable: Variable[T], /, 
+                unit: str | Unit = UnitConst.DIMENSIONLESS
+                ) -> Quantity[T]:
         '''set variable and unit.'''
     @classmethod
-    def one(cls, unit: str | Unit) -> Quantity[int]: ...  # type: ignore
+    def one(cls, unit: str | Unit) -> Quantity[float]: ...  # Literal[1]
     @property
     def variable(self) -> Variable[T]: ...
     @property

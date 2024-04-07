@@ -20,7 +20,7 @@ class SI(ConstClass):
     # hyperfine transition frequency of Cs-133
     nu133Cs = Constant(9_192_631_770, 'Hz')
     # speed of light in vacuum
-    c = Constant(299_792_458.0, 'm/s')
+    c = Constant(299_792_458, 'm/s')
     # Planck constant
     h = Constant(6.626_070_15e-34, 'J.s')
     # atomic unit of charge

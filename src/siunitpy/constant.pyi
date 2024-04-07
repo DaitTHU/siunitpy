@@ -16,16 +16,29 @@ T = TypeVar('T', bound=Linear)
 class Constant(Quantity[T]):
     '''Constant objects are just immutable Quantity objects.'''
     @overload
-    def __init__(self, value: T, /,
-                 unit: str | Unit = UnitConst.DIMENSIONLESS,
-                 uncertainty: T | Zero = zero) -> None:
+    def __new__(cls, value: float, /, 
+                unit: str | Unit = UnitConst.DIMENSIONLESS
+                ) -> Constant[float]:
+        '''exact constant, default unit is dimensionless.'''
+    @overload
+    def __new__(cls, value: T, /, 
+                unit: str | Unit = UnitConst.DIMENSIONLESS,
+                uncertainty: T | Zero = zero
+                ) -> Constant[T]:
         '''set value, unit, and uncertainty.'''
     @overload
-    def __init__(self, variable: Variable[T], /,
-                 unit: str | Unit = UnitConst.DIMENSIONLESS) -> None:
+    def __new__(cls, value: T, /, 
+                unit: str | Unit = UnitConst.DIMENSIONLESS, *,
+                relative_uncertainty: T
+                ) -> Constant[T]:
+        '''set value, unit, and relative uncertainty.'''
+    @overload
+    def __new__(cls, variable: Variable[T], /, 
+                unit: str | Unit = UnitConst.DIMENSIONLESS
+                ) -> Constant[T]:
         '''set variable and unit.'''
     @classmethod
-    def one(cls, unit: str | Unit) -> Constant[int]: ...  # type: ignore
+    def one(cls, unit: str | Unit) -> Constant[float]: ...  # Literal[1]
     @property
     def variable(self) -> Variable[T]: ...
     @property

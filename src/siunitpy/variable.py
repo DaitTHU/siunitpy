@@ -129,7 +129,7 @@ class Variable(Generic[T]):
 
     @relative_uncertainty.setter
     def relative_uncertainty(self, relative_uncertainty: T | Zero) -> None:
-        self._uncertainty = abs(self.value * move(relative_uncertainty))
+        self._uncertainty = abs(move(relative_uncertainty) * self.value)
 
     @property
     def confidence_interval(self) -> Interval[T]:

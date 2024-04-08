@@ -9,7 +9,7 @@ Moreover, it introduce uncertainty.
 
 ## Installation
 
-pip installable package: [pypi: siunit](https://pypi.org/project/siunitpy/)
+pip installable package: [pypi: siunitpy](https://pypi.org/project/siunitpy/)
 
 ```shell
 pip install siunitpy
@@ -26,7 +26,7 @@ use physical constants through class `SI`:
 ```python
 >>> from siunitpy.SI import SI
 >>> SI.c
-Constant(value=299792458, unit=m/s, uncertainty=0)
+Constant(value=299792458, uncertainty=0, unit=m/s)
 >>> print(SI.me)
 9.1093837015e-31 ± 2.8e-40 kg
 >>> print(SI.me * SI.c**2)
@@ -73,9 +73,9 @@ where `F` is a Quantity object, and it has properties:
 >>> F.value
 1
 >>> F.unit
-Unit(kg·m/s², dim=(1, 1, -2, 0, 0, 0, 0), value=1)
+Unit(kg·m/s², dim=T⁻²LM, value=1)
 >>> F.dimension
-Dimension(L=1, M=1, T=-2, I=0, H=0, N=0, J=0)
+Dimension(T=-2, L=1, M=1, I=0, H=0, N=0, J=0)
 >>> L.uncertainty
 1e-4
 ```
@@ -89,12 +89,4 @@ Quantity objects can make unit conversion and operate with number or Quantity:
 510.99894999616424 ± 1.5706848090652466e-07 keV/c²
 >>> print(F / (1 * si.m)**2)
 1.0 Pa
-```
-
-Especially, it provides temperature unit system:
-
-```python
->>> from siunitpy import degree
->>> print((100 * degree.F).to(degree.C.unit))
-37.77777777777778 °C
 ```

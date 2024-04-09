@@ -1,6 +1,6 @@
 from .dimension import Dimension
 from .dimensionconst import DimensionConst
-from .unitdata import BaseData, PrefixData, UnitData
+from .symboldata import BaseData, PrefixData, UnitData
 from .utilcollections.utils import firstof
 from .value_archive import *
 

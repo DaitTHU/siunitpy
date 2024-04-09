@@ -1,5 +1,5 @@
 import operator
-from typing import Any, NoReturn, TypeVar
+from typing import NoReturn, TypeVar
 
 from .quantity import Quantity
 from .unit import Unit
@@ -8,7 +8,7 @@ from .utilcollections.utils import _inplace
 
 __all__ = ['Constant', 'constant']
 
-T = TypeVar('T', bound=Linear[Any, Any])
+T = TypeVar('T', bound=Linear)
 
 
 class Constant(Quantity[T]):
@@ -27,3 +27,15 @@ class Constant(Quantity[T]):
 def constant(quantity: Quantity[T]):
     '''to make a Quantity object to a Constant.'''
     return Constant(quantity.variable, quantity.unit)
+
+
+class OneUnit(Constant[float]):
+    '''1 unit'''
+    def __init__(self, unit: str | Unit) -> None:
+        super().__init__(1, unit)  # type: ignore
+
+    def __rmatmul__(self, other):
+        try:
+            return super().__rmatmul__(other)
+        except (TypeError, ValueError):
+            return super().__mul__(other)

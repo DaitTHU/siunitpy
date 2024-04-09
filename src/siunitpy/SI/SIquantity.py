@@ -1,5 +1,5 @@
 from ..constant import Constant, constant
-from ..value_archive import _PI, _WEIN_ZERO, _GRAVITY
+from ..value_archive import _PI, _WEIN_ZERO, _GRAVITY, _ATM
 from ..utilcollections.constclass import ConstClass
 from .SIunit import si
 
@@ -68,7 +68,7 @@ class SI(ConstClass):
     # standard temperature
     T0 = Constant(273.15, 'K')
     # standard pressure
-    p0 = constant(si.atm.to('Pa'))
+    p0 = Constant(_ATM, 'Pa')
     # molar volume of ideal gas
     Vm = constant((R * T0 / p0).ito('m3/mol'))
 

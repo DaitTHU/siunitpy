@@ -12,3 +12,4 @@ _WEIN_ZERO = 4.965114231744277  # solution of: x = 5 * (1 - exp(-x))
 _C = 299792458              # speed of light
 _ELC = 1.602176634e-19      # elementary charge
 _GRAVITY = 9.80665
+_ATM = 101325

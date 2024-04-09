@@ -74,9 +74,6 @@ class Constant(Quantity[T]):
         where u represents a single `_BASIC_SI` unit. 
         '''
 
-    def addable(self, other: Quantity, /, *, assertTrue=False) -> bool:
-        '''check if self is addable with other, i.e. same dimension.'''
-
     def remove_uncertainty(self) -> Quantity[T]:
         '''set uncertainty zero.'''
 
@@ -152,9 +149,6 @@ class OneUnit(Constant[float]):
         '''try if the complex unit can be simplified as u, u⁻¹, u², u⁻², 
         where u represents a single `_BASIC_SI` unit. 
         '''
-
-    def addable(self, other: Quantity, /, *, assertTrue=False) -> bool:
-        '''check if self is addable with other, i.e. same dimension.'''
 
     def remove_uncertainty(self) -> Quantity[float]:
         '''set uncertainty zero.'''

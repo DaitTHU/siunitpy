@@ -23,9 +23,9 @@ def _check_addable(left: 'Quantity', right: 'Quantity'):
         raise TypeError(f"'{type(right) = }' must be 'Quantity'.")
 
 
-def _comparison(op: Callable[[float, float], bool]):
-    def __op(self, other):
-        self.addable(other, assertTrue=True)
+def _comparison(op: Callable[[Variable, Variable], bool]):
+    def __op(self: 'Quantity', other: 'Quantity'):
+        _check_addable(self, other)
         return op(self.variable * self.unit.value, other.variable * other.unit.value)
     return __op
 
@@ -211,8 +211,8 @@ class Quantity(Generic[T]):
     def remove_uncertainty(self) -> 'Quantity':
         return Quantity(self.value, self.unit)
 
-    __eq__ = _comparison(operator.eq)
-    __ne__ = _comparison(operator.ne)
+    __eq__ = _comparison(operator.eq)  # type: ignore
+    __ne__ = _comparison(operator.ne)  # type: ignore
     __gt__ = _comparison(operator.gt)
     __lt__ = _comparison(operator.lt)
     __ge__ = _comparison(operator.ge)

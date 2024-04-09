@@ -90,9 +90,6 @@ class Quantity(Generic[T]):
         where u represents a single `_BASIC_SI` unit. 
         '''
 
-    def addable(self, other: Quantity, /, *, assertTrue=False) -> bool:
-        '''check if self is addable with other, i.e. same dimension.'''
-
     def remove_uncertainty(self) -> Quantity[T]:
         '''set uncertainty zero.'''
 

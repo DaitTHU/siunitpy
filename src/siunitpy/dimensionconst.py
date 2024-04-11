@@ -1,4 +1,4 @@
-from .dimension import Dimension
+from .dimension import Dimension, _DIMENSIONLESS
 from .utilcollections.constclass import ConstClass
 
 __all__ = ['DimensionConst']
@@ -10,7 +10,7 @@ class DimensionConst(ConstClass):
     Units with different physical meanings sharing the same dimension, 
     like energy and work, have to share the same name `ENERGY`. 
     '''
-    DIMENSIONLESS = Dimension()
+    DIMENSIONLESS = _DIMENSIONLESS
     TIME = Dimension(T=1)
     LENGTH = Dimension(L=1)
     MASS = Dimension(M=1)

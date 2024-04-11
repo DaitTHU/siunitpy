@@ -4,8 +4,6 @@ from typing import Iterable, SupportsIndex
 from .utilcollections.utils import _inplace, common_rational
 from .utilcollections.utils import superscript as sup
 
-__all__ = ['Dimension']
-
 _DIM_SYMBOL = ('T', 'L', 'M', 'I', 'H', 'N', 'J')
 _DIM_NUM = len(_DIM_SYMBOL)
 
@@ -50,7 +48,9 @@ class Dimension:
     def __eq__(self, other: 'Dimension') -> bool:
         return self.__vector == other.__vector
 
-    def inverse(self): return self.unpack(map(operator.neg, self))
+    def inverse(self): 
+        '''inverse of the Dimension.'''
+        return self.unpack(map(operator.neg, self))
 
     def __mul__(self, other):
         return self.unpack(map(operator.add, self, other))
@@ -62,6 +62,7 @@ class Dimension:
     __itruediv__ = _inplace(__truediv__)
 
     def __rtruediv__(self, other):
+        '''only used in 1/dimension.'''
         if other is not 1:
             raise ValueError(
                 'Only 1 or Dimensiond object can divide Dimension object.')
@@ -71,7 +72,19 @@ class Dimension:
         return self.unpack(x * other for x in self)
 
     def nthroot(self, n):
+        '''inverse operation of power.'''
         return self.unpack(x / n for x in self)
+
+    @staticmethod
+    def product(dim_iter: Iterable['Dimension']):
+        '''return the product of dimension objects.'''
+        start = _DIMENSIONLESS
+        for dim in dim_iter:
+            start *= dim
+        return start
+
+
+_DIMENSIONLESS = Dimension()
 
 
 if __name__ == '__main__':

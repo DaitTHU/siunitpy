@@ -1,6 +1,5 @@
 import operator
-from fractions import Fraction
-from typing import Callable, Iterable, SupportsIndex
+from typing import Iterable, SupportsIndex
 
 from .utilcollections.utils import _inplace, common_rational
 from .utilcollections.utils import superscript as sup
@@ -14,30 +13,6 @@ _DIM_NUM = len(_DIM_SYMBOL)
 def _unpack_vector():
     def __getter(i: int): return lambda self: self[i]  # closure
     return (property(__getter(i)) for i in range(_DIM_NUM))
-
-
-def _unary(op: Callable[[Fraction], Fraction]):
-    '''unary operation: +v, -v.'''
-
-    def __op(self: 'Dimension') -> 'Dimension':
-        return Dimension.unpack(map(op, self))
-    return __op
-
-
-def _vector_add(op: Callable[[Fraction, Fraction], Fraction]):
-    '''vector addition: v + u, v - u.'''
-
-    def __op(self: 'Dimension', other: 'Dimension') -> 'Dimension':
-        return Dimension.unpack(map(op, self, other))
-    return __op, _inplace(__op)
-
-
-def _scalar_mul(op: Callable[[Fraction, int | Fraction], Fraction]):
-    '''scalar multiplication: c * v, v / c.'''
-
-    def __op(self: 'Dimension', c: int | Fraction) -> 'Dimension':
-        return Dimension.unpack(op(x, c) for x in self)
-    return __op, _inplace(__op)
 
 
 class Dimension:
@@ -65,7 +40,7 @@ class Dimension:
         para = ', '.join(f'{s}={v}' for s, v in zip(_DIM_SYMBOL, self))
         return '{}({})'.format(self.__class__.__name__, para)
 
-    def __str__(self) -> str: 
+    def __str__(self) -> str:
         return ''.join(s + sup(v) for s, v in zip(_DIM_SYMBOL, self) if v)
 
     def __len__(self) -> int: return _DIM_NUM
@@ -75,15 +50,28 @@ class Dimension:
     def __eq__(self, other: 'Dimension') -> bool:
         return self.__vector == other.__vector
 
-    __pos__ = _unary(operator.pos)
-    __neg__ = _unary(operator.neg)
+    def inverse(self): return self.unpack(map(operator.neg, self))
 
-    __add__, __iadd__ = _vector_add(operator.add)
-    __sub__, __isub__ = _vector_add(operator.sub)
+    def __mul__(self, other):
+        return self.unpack(map(operator.add, self, other))
 
-    __mul__, __imul__ = _scalar_mul(operator.mul)
-    __rmul__ = __mul__
-    __truediv__, __itruediv__ = _scalar_mul(operator.truediv)
+    def __truediv__(self, other):
+        return self.unpack(map(operator.sub, self, other))
+
+    __imul__ = _inplace(__mul__)
+    __itruediv__ = _inplace(__truediv__)
+
+    def __rtruediv__(self, other):
+        if other is not 1:
+            raise ValueError(
+                'Only 1 or Dimensiond object can divide Dimension object.')
+        return self.inverse()
+
+    def __pow__(self, other):
+        return self.unpack(x * other for x in self)
+
+    def nthroot(self, n):
+        return self.unpack(x / n for x in self)
 
 
 if __name__ == '__main__':

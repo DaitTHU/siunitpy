@@ -1,12 +1,11 @@
 import operator
 from fractions import Fraction
 from itertools import product
-from math import prod
 from typing import Callable, Optional, overload
 
 from .dimension import Dimension
 from .dimensionconst import DimensionConst
-from .unit_analysis import _combine, _combine_fullname, _resolve
+from .unit_analysis import _combine, _combine_fullname, _unit_init
 from .unit_archive import _BASIC_SI, _PREFIX_DATA, _UNIT_DATA, _UNIT_STD
 from .unitelement import UnitElement
 from .utilcollections.compound import Compound
@@ -18,15 +17,12 @@ _ONE, _TWO = Fraction(1), Fraction(2)
 _SIMPLE_EXPONENT = (-_ONE, _TWO, -_TWO)
 
 
-def _nthroot(a, b): return a ** (1 / b)
-
-
 def _vector_add(op: Callable, valop: Callable):
     '''vector addition: v + u, v - u.'''
 
     def __op(self: 'Unit', other: 'Unit'):
         return Unit(op(self._elements, other._elements),
-                    dimension=op(self.dimension, other.dimension),
+                    dimension=valop(self.dimension, other.dimension),
                     value=valop(self.value, other.value))
 
     return __op, _inplace(__op)
@@ -39,7 +35,7 @@ def _scalar_mul(op: Callable, valop: Callable):
         if c == 0:
             return _UNIT_SIMPLE['']
         return Unit(op(self._elements, c),
-                    dimension=op(self.dimension, c),
+                    dimension=valop(self.dimension, c),
                     value=valop(self.value, c))
 
     return __op, _inplace(__op)
@@ -62,14 +58,7 @@ class Unit:
                  dimension: Optional[Dimension] = None,
                  value: float = 1) -> None:
         if isinstance(symbol, str):
-            self._elements = _resolve(symbol)
-            dim_gen = (u.dimension * e for u, e in self._elements.items())
-            self._dimension = sum(dim_gen, start=DimensionConst.DIMENSIONLESS)
-            self._value = prod(u.value**e for u, e in self._elements.items())
-            if self.is_dimensionless() and self.value == 1:  # like "C²/F·J"
-                self._elements.clear()
-            if isinstance(self.value, float) and self.value.is_integer():
-                self._value = int(self.value)
+            self._elements, self._dimension, self._value = _unit_init(symbol)
             return
         elif dimension is None:
             raise TypeError(f"{type(symbol) = } must be 'str'.")
@@ -107,7 +96,7 @@ class Unit:
 
     @classmethod
     def move(cls, unit):
-        '''transform either str or Unit object to a Unit object.'''
+        '''transform a str/Unit object to a Unit object.'''
         if isinstance(unit, cls):
             return unit
         if isinstance(unit, str):
@@ -132,17 +121,17 @@ class Unit:
         '''return a new unit that remove all the prefix.'''
         return self.deprefix_with_factor()[0]
 
-    def to_basic_with_factor(self):
+    def tobasic_with_factor(self):
         elements = Compound({UnitElement(unit): e for unit, e in
                              zip(_BASIC_SI, self.dimension) if e}, move_dict=True)
         return Unit(elements, self.dimension, 1), self.value
 
-    def to_basic(self):
+    def tobasic(self):
         '''return a combination of basic SI unit 
         (i.e. m, kg, s, A, K, mol, cd) 
         with the same dimension.
         '''
-        return self.to_basic_with_factor()[0]
+        return self.tobasic_with_factor()[0]
 
     def simplify_with_factor(self):
         if len(self._elements) < 2:
@@ -150,7 +139,7 @@ class Unit:
         if self.dimension in _UNIT_STD:
             return Unit(_UNIT_STD[self.dimension]), self.value
         for (dim, symbol), expo in product(_UNIT_STD.items(), _SIMPLE_EXPONENT):
-            if dim * expo != self.dimension:
+            if dim**expo != self.dimension:
                 continue
             elements = Compound({UnitElement(symbol): expo}, move_dict=True)
             return Unit(elements, self.dimension, 1), self.value
@@ -163,7 +152,7 @@ class Unit:
         e.g. the standard unit of voltage is V.
         '''
         return self.simplify_with_factor()[0]
-    
+
     def __hash__(self) -> int:
         return hash((self.dimension, self.value))
 
@@ -171,7 +160,7 @@ class Unit:
         '''e.g. N == kg·m/s2'''
         return self.dimension == other.dimension and self.value == other.value
 
-    def same_as(self, other: 'Unit') -> bool:
+    def sameas(self, other: 'Unit') -> bool:
         '''e.g. N and kg.m/s2 are not the same element.'''
         return self._elements == other._elements
 
@@ -184,27 +173,34 @@ class Unit:
             raise TypeError(f"{type(other) = } must be 'Unit' or 'Quantity'.")
         return False
 
-    def is_dimensionless(self) -> bool:
+    def isdimensionless(self) -> bool:
         return self.dimension == DimensionConst.DIMENSIONLESS
 
-    def value_over(self, other: 'Unit', /) -> float:
+    def valueover(self, other: 'Unit', /) -> float:
         '''return self.value / other.value.'''
         return self.value / other.value
 
-    def __pos__(self): return self
+    def inverse(self):
+        '''inverse of the unit'''
+        return Unit(-self._elements, self.dimension.inverse(), 1 / self.value)
 
-    def __neg__(self):
-        '''reverse the unit'''
-        return Unit(-self._elements, -self.dimension, 1 / self.value)
+    __mul__, __imul__ = _vector_add(operator.add, operator.mul)
+    __truediv__, __itruediv__ = _vector_add(operator.sub, operator.truediv)
+    __pow__, __ipow__ = _scalar_mul(operator.mul, operator.pow)
 
-    __add__, __iadd__ = _vector_add(operator.add, operator.mul)
-    __sub__, __isub__ = _vector_add(operator.sub, operator.truediv)
+    def __rtruediv__(self, other):
+        '''only used in 1/unit.'''
+        if other is not 1:
+            raise ValueError('only 1 or Unit object can divide Unit object.')
+        return self.inverse()
 
-    __mul__, __imul__ = _scalar_mul(operator.mul, operator.pow)
-    __rmul__ = __mul__
-    __truediv__, __itruediv__ = _scalar_mul(operator.truediv, _nthroot)
+    def nthroot(self, n):
+        '''inverse operation of power.'''
+        return Unit(self._elements / n, self.dimension.nthroot(n), self.value**(1 / n))
 
 
 _UNIT_SIMPLE: dict[str, Unit] = {
     symbol: Unit(symbol) for symbol in _UNIT_DATA
 }
+
+DIMENSIONLESS = Unit.simple('')

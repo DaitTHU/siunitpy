@@ -21,7 +21,10 @@ if False:
         import re
         raise ImportWarning('please use regex.')
 import re
+from math import prod
 
+from .dimension import Dimension
+from .dimensionconst import DimensionConst
 from .unitelement import UnitElement
 from .utilcollections import Compound
 from .utilcollections.utils import _SUPERSCRIPT, neg_after
@@ -76,12 +79,26 @@ def _combine(elements: Compound[UnitElement]) -> str:
 
 def _combine_fullname(elements: Compound[UnitElement]) -> str:
     '''combine the info in the dict into a str representing the unit.'''
-    symbol = '·'.join(u.fullname + sup(e) for u, e in elements.items() if e > 0)
+    symbol = '·'.join(u.fullname + sup(e)
+                      for u, e in elements.items() if e > 0)
     if any(e < 0 for e in elements.values()):
         symbol += '/' + \
-            '·'.join(u.fullname + sup(-e) for u, e in elements.items() if e < 0)
+            '·'.join(u.fullname + sup(-e)
+                     for u, e in elements.items() if e < 0)
     return symbol
 
 
 def _formularize_unit(matchobj: re.Match[str]) -> str:
     return _SPECIAL_CHAR[matchobj.group()]
+
+
+def _unit_init(symbol: str) -> tuple[Compound[UnitElement], Dimension, float]:
+    '''used in `Unit.__init__(self, symbol)`'''
+    elements = _resolve(symbol)
+    dimension = Dimension.product(u.dimension**e for u, e in elements.items())
+    value = prod(u.value**e for u, e in elements.items())
+    if isinstance(value, float) and value.is_integer():
+        value = int(value)
+    if dimension == DimensionConst.DIMENSIONLESS and value == 1:
+        elements.clear()
+    return elements, dimension, value

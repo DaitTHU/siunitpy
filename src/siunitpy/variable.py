@@ -20,7 +20,7 @@ def move(obj: T | None | Zero) -> T | Zero:
     return zero if obj is None else obj
 
 
-def is_zero(value: Any, precision: Any = 0) -> bool:
+def iszero(value: Any, precision: Any = 0) -> bool:
     '''`value` is a non-negative number/array.'''
     if value is zero:
         return True
@@ -145,19 +145,19 @@ class Variable(Generic[T]):
         )
 
     def __str__(self) -> str:
-        if self.is_exact():
+        if self.isexact():
             return str(self.value)
         return f'{self.value} ± {self.uncertainty}'
 
     def __format__(self, format_spec: str) -> str:
-        if self.is_exact():
+        if self.isexact():
             return format(self.value, format_spec)
         return f'{self.value:{format_spec}} ± {self.uncertainty:{format_spec}}'
 
-    def is_exact(self, precision=zero) -> bool:
+    def isexact(self, precision=zero) -> bool:
         if precision is zero:
             precision = 0
-        return is_zero(self.uncertainty, precision)
+        return iszero(self.uncertainty, precision)
 
     def clear_uncertainty(self) -> None: self._uncertainty = zero
 
@@ -167,7 +167,7 @@ class Variable(Generic[T]):
     def almost_equal(self, other: 'Variable') -> bool:
         return self.confidence_interval.intersect(other.confidence_interval)
 
-    def same_as(self, other: 'Variable') -> bool:
+    def sameas(self, other: 'Variable') -> bool:
         return self.value == other.value and self.uncertainty == other.uncertainty
 
     __eq__ = _comparison(operator.eq)  # type: ignore
@@ -186,8 +186,6 @@ class Variable(Generic[T]):
     __mul__, __imul__, __rmul__ = _muldiv(operator.mul, operator.imul)
     __matmul__, __imatmul__, __rmatmul__ = _muldiv(
         operator.matmul, operator.imatmul)
-    __floordiv__, __ifloordiv__, __rfloordiv__ = _muldiv(
-        operator.floordiv, operator.ifloordiv)
     __truediv__, __itruediv__, __rtruediv__ = _muldiv(
         operator.truediv, operator.itruediv)
 
@@ -197,10 +195,10 @@ class Variable(Generic[T]):
         else:
             rel_uncert = _hypotenuse(self.relative_uncertainty * other.value,
                                      log(self.value) * other.uncertainty)  # type: ignore
-        return Variable(self.value ** other, relative_uncertainty=rel_uncert)
+        return Variable(self.value**other, relative_uncertainty=rel_uncert)
 
     def __ipow__(self, other: T):
-        if self.is_exact():
+        if self.isexact():
             self._value **= other
             return self
         old_value = copy(self.value)
@@ -210,3 +208,7 @@ class Variable(Generic[T]):
         return self
 
     def __rpow__(self, other): return other ** self.value
+
+    def nthroot(self, n):
+        return Variable(self.value**(1/n), 
+                        relative_uncertainty=self.relative_uncertainty/n)

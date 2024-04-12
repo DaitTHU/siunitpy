@@ -4,7 +4,6 @@ from itertools import product
 from typing import Callable, Optional, overload
 
 from .dimension import Dimension
-from .dimensionconst import DimensionConst
 from .unit_analysis import _combine, _combine_fullname, _unit_init
 from .unit_archive import _BASIC_SI, _PREFIX_DATA, _UNIT_DATA, _UNIT_STD
 from .unitelement import UnitElement
@@ -63,7 +62,7 @@ class Unit:
         elif dimension is None:
             raise TypeError(f"{type(symbol) = } must be 'str'.")
         # developer mode, make sure type(symbol) is Compound
-        if dimension == DimensionConst.DIMENSIONLESS and value == 1:
+        if dimension.isdimensionless() and value == 1:
             self._elements: Compound[UnitElement] = Compound()
         elif isinstance(symbol, Compound):
             self._elements = symbol  # no copy
@@ -174,7 +173,7 @@ class Unit:
         return False
 
     def isdimensionless(self) -> bool:
-        return self.dimension == DimensionConst.DIMENSIONLESS
+        return self.dimension.isdimensionless()
 
     def valueover(self, other: 'Unit', /) -> float:
         '''return self.value / other.value.'''

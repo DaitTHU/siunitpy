@@ -21,16 +21,15 @@ if False:
         import re
         raise ImportWarning('please use regex.')
 import re
-from math import prod
+from math import prod as float_product
 
 from .dimension import Dimension
-from .dimensionconst import DimensionConst
 from .unitelement import UnitElement
 from .utilcollections import Compound
 from .utilcollections.utils import _SUPERSCRIPT, neg_after
 from .utilcollections.utils import superscript as sup
 
-__all__ = ['_resolve', '_combine', '_combine_fullname']
+__all__ = ['_resolve', '_combine', '_combine_fullname', '_unit_init']
 
 _UNIT_SEP = re.compile(r'[/.·]+')
 _UNIT_EXPO = re.compile(r'[+-]?[0-9]+$')
@@ -96,9 +95,9 @@ def _unit_init(symbol: str) -> tuple[Compound[UnitElement], Dimension, float]:
     '''used in `Unit.__init__(self, symbol)`'''
     elements = _resolve(symbol)
     dimension = Dimension.product(u.dimension**e for u, e in elements.items())
-    value = prod(u.value**e for u, e in elements.items())
+    value = float_product(u.value**e for u, e in elements.items())
     if isinstance(value, float) and value.is_integer():
         value = int(value)
-    if dimension == DimensionConst.DIMENSIONLESS and value == 1:
+    if dimension.isdimensionless() and value == 1:
         elements.clear()
     return elements, dimension, value

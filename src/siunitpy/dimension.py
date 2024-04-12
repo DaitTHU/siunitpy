@@ -5,6 +5,7 @@ from .utilcollections.utils import _inplace, common_rational
 from .utilcollections.utils import superscript as sup
 
 _DIM_SYMBOL = ('T', 'L', 'M', 'I', 'H', 'N', 'J')
+_DIM_DICT = {s: i for i, s in enumerate(_DIM_SYMBOL)}
 _DIM_NUM = len(_DIM_SYMBOL)
 
 
@@ -21,10 +22,7 @@ class Dimension:
         self.__vector = tuple(map(common_rational, dimension_vector))
 
     @classmethod
-    def unpack(cls, iterable: dict | Iterable, /):
-        if isinstance(iterable, dict):
-            return cls(**iterable)
-        return cls(*iterable)
+    def unpack(cls, iterable: Iterable, /): return cls(*iterable)
 
     def __getitem__(self, key: SupportsIndex): return self.__vector[key]
 
@@ -48,7 +46,31 @@ class Dimension:
     def __eq__(self, other: 'Dimension') -> bool:
         return self.__vector == other.__vector
 
-    def inverse(self): 
+    def isdimensionless(self):
+        '''all dimension is zero.'''
+        return all(v == 0 for v in self)
+
+    def iscomposedof(self, composition: str):
+        '''if a dimension is composed of the compostion.
+
+        >>> Dimension(T=1, M=-2).iscomposedof('TM')
+        '''
+        return all(v != 0 if _DIM_SYMBOL[i] in composition else v == 0
+                   for i, v in enumerate(self))
+
+    def isgeometric(self):
+        '''only L != 0.'''
+        return self.iscomposedof('T')
+
+    def iskinematic(self):
+        '''only T and L != 0.'''
+        return self.iscomposedof('TL')
+
+    def isdynamic(self):
+        '''obly T, L and M != 0'''
+        return self.iscomposedof('TLM')
+
+    def inverse(self):
         '''inverse of the Dimension.'''
         return self.unpack(map(operator.neg, self))
 

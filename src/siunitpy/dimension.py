@@ -17,12 +17,21 @@ def _unpack_vector():
 class Dimension:
     __slots__ = ('__vector',)
 
-    def __init__(self, T=0, L=0, M=0, I=0, H=0, N=0, J=0) -> None:
-        dimension_vector = (T, L, M, I, H, N, J)
+    def __init__(self, T: int | Iterable = 0, L=0, M=0, I=0, H=0, N=0, J=0):
+        if isinstance(T, Iterable):
+            # internal use only, assert len(T) == _DIM_NUM
+            dimension_vector = T
+        else:
+            dimension_vector = (T, L, M, I, H, N, J)
         self.__vector = tuple(map(common_rational, dimension_vector))
 
     @classmethod
-    def unpack(cls, iterable: Iterable, /): return cls(*iterable)
+    def unpack(cls, iterable: Iterable | dict, /):
+        if isinstance(iterable, dict):
+            return cls(**iterable)
+        return cls(*iterable)
+
+    def astuple(self): return self.__vector
 
     def __getitem__(self, key: SupportsIndex): return self.__vector[key]
 
@@ -48,7 +57,7 @@ class Dimension:
 
     def isdimensionless(self):
         '''all dimension is zero.'''
-        return all(v == 0 for v in self)
+        return self is _DIMENSIONLESS or all(v == 0 for v in self)
 
     def iscomposedof(self, composition: str):
         '''if a dimension is composed of the compostion.
@@ -72,13 +81,15 @@ class Dimension:
 
     def inverse(self):
         '''inverse of the Dimension.'''
-        return self.unpack(map(operator.neg, self))
+        if self is _DIMENSIONLESS:
+            return self
+        return self.__class__(map(operator.neg, self))
 
     def __mul__(self, other):
-        return self.unpack(map(operator.add, self, other))
+        return self.__class__(map(operator.add, self, other))
 
     def __truediv__(self, other):
-        return self.unpack(map(operator.sub, self, other))
+        return self.__class__(map(operator.sub, self, other))
 
     __imul__ = _inplace(__mul__)
     __itruediv__ = _inplace(__truediv__)
@@ -91,11 +102,15 @@ class Dimension:
         return self.inverse()
 
     def __pow__(self, other):
-        return self.unpack(x * other for x in self)
+        if self is _DIMENSIONLESS:
+            return self
+        return self.__class__(x * other for x in self)
 
     def nthroot(self, n):
+        if self is _DIMENSIONLESS:
+            return self
         '''inverse operation of power.'''
-        return self.unpack(x / n for x in self)
+        return self.__class__(x / n for x in self)
 
     @staticmethod
     def product(dim_iter: Iterable['Dimension']):

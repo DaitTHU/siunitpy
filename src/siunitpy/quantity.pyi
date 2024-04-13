@@ -2,8 +2,7 @@ from typing import Generic, TypeVar, overload
 
 from .dimension import Dimension
 from .identity import Zero, zero
-from .unit import Unit
-from .unitconst import UnitConst
+from .unit import DIMENSIONLESS, Unit
 from .utilcollections.abc import Linear
 from .variable import Variable
 
@@ -30,24 +29,24 @@ class Quantity(Generic[T]):
     '''
     @overload
     def __new__(cls, value: float, /, 
-                unit: str | Unit = UnitConst.DIMENSIONLESS
+                unit: str | Unit = DIMENSIONLESS
                 ) -> Quantity[float]:
         '''exact quantity, default unit is dimensionless.'''
     @overload
     def __new__(cls, value: T, /, 
-                unit: str | Unit = UnitConst.DIMENSIONLESS,
+                unit: str | Unit = DIMENSIONLESS,
                 uncertainty: T | Zero = zero
                 ) -> Quantity[T]:
         '''set value, unit, and uncertainty.'''
     @overload
     def __new__(cls, value: T, /, 
-                unit: str | Unit = UnitConst.DIMENSIONLESS, *,
+                unit: str | Unit = DIMENSIONLESS, *,
                 relative_uncertainty: T
                 ) -> Quantity[T]:
         '''set value, unit, and relative uncertainty.'''
     @overload
     def __new__(cls, variable: Variable[T], /, 
-                unit: str | Unit = UnitConst.DIMENSIONLESS
+                unit: str | Unit = DIMENSIONLESS
                 ) -> Quantity[T]:
         '''set variable and unit.'''
     @classmethod

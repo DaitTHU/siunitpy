@@ -4,17 +4,16 @@ from typing import Any, Callable, Generic, TypeVar
 
 from .dimension import Dimension
 from .identity import Zero, zero
-from .unit import Unit
-from .unitconst import UnitConst
+from .unit import DIMENSIONLESS, Unit
 from .utilcollections.abc import Linear
 from .variable import Variable
 
 T = TypeVar('T', bound=Linear)
 
 
-def _check_addable(left: 'Quantity', right: 'Quantity'):
+def _dimension_consistency(left: 'Quantity', right: 'Quantity'):
     try:
-        if left.unit.parallel(right.unit):
+        if left.unit.dimension == right.unit.dimension:
             return
         raise ValueError(f"dimension {left.dimension} != {right.dimension}.")
     except AttributeError:
@@ -23,7 +22,7 @@ def _check_addable(left: 'Quantity', right: 'Quantity'):
 
 def _comparison(op: Callable[[Variable, Variable], bool]):
     def __op(self: 'Quantity', other: 'Quantity'):
-        _check_addable(self, other)
+        _dimension_consistency(self, other)
         return op(self.variable * self.unit.value, other.variable * other.unit.value)
     return __op
 
@@ -42,7 +41,7 @@ def _addsub(op: Callable, iop: Callable):
     def __op(self: 'Quantity', other: 'Quantity'):
         if self.isdimensionless() and not isinstance(other, Quantity):
             return Quantity(op(self.variable, other), self.unit)
-        _check_addable(self, other)
+        _dimension_consistency(self, other)
         other_var = other.variable * other.unit.valueover(self.unit)
         return Quantity(op(self.variable, other_var), self.unit)
 
@@ -50,7 +49,7 @@ def _addsub(op: Callable, iop: Callable):
         if self.isdimensionless() and not isinstance(other, Quantity):
             self._variable = iop(self.variable, other)
             return self
-        _check_addable(self, other)
+        _dimension_consistency(self, other)
         self._variable = iop(self.variable, other.variable *
                              other.unit.valueover(self.unit))
         return self
@@ -74,7 +73,7 @@ def _muldiv(op: Callable, iop: Callable, *, unitop=None, inverse: bool = False):
         new_unit: Unit = unitop(self.unit, other.unit)
         if new_unit.isdimensionless():
             new_variable *= new_unit.value
-            new_unit = UnitConst.DIMENSIONLESS
+            new_unit = DIMENSIONLESS
         else:
             new_unit, factor = new_unit.simplify_with_factor()
             new_variable *= factor
@@ -88,7 +87,7 @@ def _muldiv(op: Callable, iop: Callable, *, unitop=None, inverse: bool = False):
         self._unit = unitop(self.unit, other.unit)
         if self.unit.isdimensionless():
             self._variable *= self.unit.value
-            self._unit = UnitConst.DIMENSIONLESS
+            self._unit = DIMENSIONLESS
         else:
             self._unit, factor = self.unit.simplify_with_factor()
             self._variable *= factor
@@ -110,7 +109,7 @@ class Quantity(Generic[T]):
     __slots__ = ('_variable', '_unit')
 
     def __init__(self, value: T | Variable[T], /,
-                 unit: str | Unit = UnitConst.DIMENSIONLESS,
+                 unit: str | Unit = DIMENSIONLESS,
                  uncertainty: T | Zero = zero) -> None:
         if not isinstance(unit, (str, Unit)):
             raise TypeError(f"{type(unit) = } is not 'str' or 'Unit'.")
@@ -145,19 +144,19 @@ class Quantity(Generic[T]):
         )
 
     def __str__(self) -> str:
-        if self.unit == UnitConst.DIMENSIONLESS:
+        if self.unit.isdimensionless():
             return str(self.variable)
         return f'{self.variable} {self.unit}'
 
     def __format__(self, format_spec):
-        if self.unit == UnitConst.DIMENSIONLESS:
+        if self.unit.isdimensionless():
             return format(self.variable, format_spec)
         return f'{self.variable:{format_spec}} {self.unit}'
 
     def isexact(self) -> bool: return self._variable.isexact()
 
     def isdimensionless(self) -> bool:
-        return self.unit == UnitConst.DIMENSIONLESS
+        return self.unit.isdimensionless()
 
     def copy(self) -> 'Quantity':
         return Quantity(copy(self.variable), self.unit)

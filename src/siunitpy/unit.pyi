@@ -3,7 +3,7 @@ from typing import Iterable, Literal
 
 from .dimension import Dimension
 
-__all__ = ['Unit']
+__all__ = ['Unit', 'DIMENSIONLESS']
 
 
 class Unit:
@@ -99,3 +99,6 @@ class Unit:
     def __rtruediv__(self, other: Literal[1]) -> Unit: ...
     def __pow__(self, other: int | float | Fraction) -> Unit: ...
     def nthroot(self, n: int | float | Fraction) -> Unit: ...
+
+
+DIMENSIONLESS: Unit

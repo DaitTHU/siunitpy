@@ -3,8 +3,7 @@ from typing import TypeVar, overload
 from .dimension import Dimension
 from .identity import Zero, zero
 from .quantity import Quantity
-from .unit import Unit
-from .unitconst import UnitConst
+from .unit import DIMENSIONLESS, Unit
 from .utilcollections.abc import Linear
 from .variable import Variable
 
@@ -17,24 +16,24 @@ class Constant(Quantity[T]):
     '''Constant objects are just immutable Quantity objects.'''
     @overload
     def __new__(cls, value: float, /, 
-                unit: str | Unit = UnitConst.DIMENSIONLESS
+                unit: str | Unit = DIMENSIONLESS
                 ) -> Constant[float]:
         '''exact constant, default unit is dimensionless.'''
     @overload
     def __new__(cls, value: T, /, 
-                unit: str | Unit = UnitConst.DIMENSIONLESS,
+                unit: str | Unit = DIMENSIONLESS,
                 uncertainty: T | Zero = zero
                 ) -> Constant[T]:
         '''set value, unit, and uncertainty.'''
     @overload
     def __new__(cls, value: T, /, 
-                unit: str | Unit = UnitConst.DIMENSIONLESS, *,
+                unit: str | Unit = DIMENSIONLESS, *,
                 relative_uncertainty: T
                 ) -> Constant[T]:
         '''set value, unit, and relative uncertainty.'''
     @overload
     def __new__(cls, variable: Variable[T], /, 
-                unit: str | Unit = UnitConst.DIMENSIONLESS
+                unit: str | Unit = DIMENSIONLESS
                 ) -> Constant[T]:
         '''set variable and unit.'''
     @classmethod

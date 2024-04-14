@@ -91,20 +91,21 @@ class Dimension:
     def __truediv__(self, other):
         return self.__class__(map(operator.sub, self, other))
 
+    def __pow__(self, n):
+        if self is _DIMENSIONLESS:
+            return self
+        return self.__class__(x * n for x in self)
+    
     __imul__ = _inplace(__mul__)
     __itruediv__ = _inplace(__truediv__)
+    __ipow__ = _inplace(__pow__)
 
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, one):
         '''only used in 1/dimension.'''
-        if other is not 1:
+        if one is not 1:
             raise ValueError(
                 'Only 1 or Dimensiond object can divide Dimension object.')
         return self.inverse()
-
-    def __pow__(self, other):
-        if self is _DIMENSIONLESS:
-            return self
-        return self.__class__(x * other for x in self)
 
     def nthroot(self, n):
         if self is _DIMENSIONLESS:

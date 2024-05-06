@@ -69,21 +69,19 @@ def _resolve(symbol: str, /) -> Compound[UnitElement]:
 
 def _combine(elements: Compound[UnitElement]) -> str:
     '''combine the info in the dict into a str representing the unit.'''
-    symbol = '·'.join(u.symbol + sup(e) for u, e in elements.items() if e > 0)
+    symbol = '·'.join(u.symbol + sup(e) for u, e in elements.pos_items())
     if any(e < 0 for e in elements.values()):
         symbol += '/' + \
-            '·'.join(u.symbol + sup(-e) for u, e in elements.items() if e < 0)
+            '·'.join(u.symbol + sup(-e) for u, e in elements.neg_items())
     return symbol
 
 
 def _combine_fullname(elements: Compound[UnitElement]) -> str:
     '''combine the info in the dict into a str representing the unit.'''
-    symbol = '·'.join(u.fullname + sup(e)
-                      for u, e in elements.items() if e > 0)
+    symbol = '·'.join(u.fullname + sup(e) for u, e in elements.pos_items())
     if any(e < 0 for e in elements.values()):
         symbol += '/' + \
-            '·'.join(u.fullname + sup(-e)
-                     for u, e in elements.items() if e < 0)
+            '·'.join(u.fullname + sup(-e) for u, e in elements.neg_items())
     return symbol
 
 
@@ -95,9 +93,9 @@ def _unit_init(symbol: str) -> tuple[Compound[UnitElement], Dimension, float]:
     '''used in `Unit.__init__(self, symbol)`'''
     elements = _resolve(symbol)
     dimension = Dimension.product(u.dimension**e for u, e in elements.items())
-    value = float_product(u.value**e for u, e in elements.items())
-    if isinstance(value, float) and value.is_integer():
-        value = int(value)
-    if dimension.isdimensionless() and value == 1:
+    factor = float_product(u.factor**e for u, e in elements.items())
+    if isinstance(factor, float) and factor.is_integer():
+        factor = int(factor)
+    if dimension.isdimensionless() and factor == 1:
         elements.clear()
-    return elements, dimension, value
+    return elements, dimension, factor

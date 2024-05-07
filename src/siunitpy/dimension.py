@@ -10,7 +10,9 @@ _DIM_NUM = len(_DIM_SYMBOL)
 
 
 def _unpack_vector():
-    def __getter(i: int): return lambda self: self[i]  # closure
+    '''properties of Dimension.'''
+    def __getter(i: int):
+        return lambda self: self.__vector[i]  # closure
     return (property(__getter(i)) for i in range(_DIM_NUM))
 
 
@@ -33,7 +35,10 @@ class Dimension:
 
     def astuple(self): return self.__vector
 
-    def __getitem__(self, key: SupportsIndex): return self.__vector[key]
+    def __getitem__(self, key: SupportsIndex | str): 
+        if isinstance(key, str):
+            return self.__vector[_DIM_DICT[key]]
+        return self.__vector[key]
 
     def __iter__(self): return iter(self.__vector)
 
@@ -95,7 +100,7 @@ class Dimension:
         if self is _DIMENSIONLESS:
             return self
         return self.__class__(x * n for x in self)
-    
+
     __imul__ = _inplace(__mul__)
     __itruediv__ = _inplace(__truediv__)
     __ipow__ = _inplace(__pow__)

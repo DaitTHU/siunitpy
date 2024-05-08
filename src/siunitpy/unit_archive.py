@@ -1,6 +1,6 @@
 from .dimension import Dimension
 from .dimensionconst import DimensionConst
-from .symboldata import BaseData, PrefixData, UnitData
+from .symboldata import BaseData, PrefixData
 from .utilcollections.utils import firstof
 from .value_archive import *
 
@@ -18,6 +18,8 @@ _MINUTE = 60
 _HOUR = 60 * _MINUTE
 _DAY = 24 * _HOUR
 _SIMPLE_YEAR = 365 * _DAY
+_JULIAN_YEAR = _SIMPLE_YEAR + _DAY // 4
+_LIGHT_YEAR = _C * _JULIAN_YEAR
 # degree
 _DEGREE = _PI / 180
 _ARCMIN = _DEGREE / 60
@@ -77,7 +79,7 @@ _LOGARITHMIC_RATIO: dict[str, str] = {
 _BASE_SI = ('s', 'm', 'kg', 'A', 'K', 'mol', 'cd')
 
 # unit library, classified by dimension
-# it should appear and be used only in this file
+# internal use only in this file
 __UNIT_LIB: dict[Dimension, dict[str, BaseData]] = {
     DimensionConst.DIMENSIONLESS: {
         '': BaseData('', 1),
@@ -91,7 +93,8 @@ __UNIT_LIB: dict[Dimension, dict[str, BaseData]] = {
         'm': BaseData('meter', 1),
         'Å': BaseData('angstrom', 1e-10),  # ångström
         'au': BaseData('astronomical-unit', _AU),
-        'pc': BaseData('parsec', _PC)
+        'pc': BaseData('parsec', _PC),
+        'ly': BaseData('light-year', _LIGHT_YEAR)
     },
     DimensionConst.MASS: {
         'g': BaseData('gram', 1e-3),
@@ -105,6 +108,7 @@ __UNIT_LIB: dict[Dimension, dict[str, BaseData]] = {
         'h': BaseData('hour', _HOUR),
         'd': BaseData('day', _DAY),
         'yr': BaseData('year', _SIMPLE_YEAR),
+        'a': BaseData('Julian-year', _JULIAN_YEAR),
     },
     DimensionConst.ELECTRIC_CURRENT: {
         'A': BaseData('ampere', 1),
@@ -179,14 +183,19 @@ __UNIT_LIB: dict[Dimension, dict[str, BaseData]] = {
     DimensionConst.CATALYTIC_ACTIVITY: {'kat': BaseData('katal', 1), },
 }
 
-_UNIT_DATA: dict[str, UnitData] = {
-    unit: UnitData(dim, val)
-    for dim, unit_val in __UNIT_LIB.items()
-    for unit, val in unit_val.items()
+# add dimension property
+for dim, unit_dict in __UNIT_LIB.items():
+    for basedata in unit_dict.values():
+        basedata.dimension = dim
+
+_UNIT_DATA: dict[str, BaseData] = {
+    unit: basedata
+    for unit_dict in __UNIT_LIB.values()  # concatenate all dict
+    for unit, basedata in unit_dict.items()
 }
 
 _UNIT_FULLNAME: dict[str, str] = {
-    unitdata.fullname: unit for unit, unitdata in _UNIT_DATA.items()
+    basedata.fullname: unit for unit, basedata in _UNIT_DATA.items()
 }
 
 # unit standard, every dimension has one SI basic/standard unit

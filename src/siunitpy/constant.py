@@ -1,8 +1,7 @@
 import operator
 from typing import NoReturn, TypeVar
 
-from .quantity import Quantity
-from .unit import Unit
+from .quantity import Quantity, Unit
 from .utilcollections.abc import Linear
 from .utilcollections.utils import _inplace
 

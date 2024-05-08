@@ -1,14 +1,21 @@
 from typing import Generic, TypeVar, overload
 
+from .baseunit import BaseUnit
 from .dimension import Dimension
 from .identity import Zero, zero
-from .unit import DIMENSIONLESS, Unit
 from .utilcollections.abc import Linear
 from .variable import Variable
 
-__all__ = ['Quantity']
+__all__ = ['Unit', 'Quantity', 'DIMENSIONLESS']
 
 T = TypeVar('T', bound=Linear)
+
+
+class Unit(BaseUnit):
+    def __init__(self, symbol: str): ...
+
+
+DIMENSIONLESS: Unit
 
 
 class Quantity(Generic[T]):
@@ -28,24 +35,24 @@ class Quantity(Generic[T]):
     >>> Quantity(1.6e-19, 'C')
     '''
     @overload
-    def __new__(cls, value: float, /, 
+    def __new__(cls, value: float, /,
                 unit: str | Unit = DIMENSIONLESS
                 ) -> Quantity[float]:
         '''exact quantity, default unit is dimensionless.'''
     @overload
-    def __new__(cls, value: T, /, 
+    def __new__(cls, value: T, /,
                 unit: str | Unit = DIMENSIONLESS,
                 uncertainty: T | Zero = zero
                 ) -> Quantity[T]:
         '''set value, unit, and uncertainty.'''
     @overload
-    def __new__(cls, value: T, /, 
+    def __new__(cls, value: T, /,
                 unit: str | Unit = DIMENSIONLESS, *,
                 relative_uncertainty: T
                 ) -> Quantity[T]:
         '''set value, unit, and relative uncertainty.'''
     @overload
-    def __new__(cls, variable: Variable[T], /, 
+    def __new__(cls, variable: Variable[T], /,
                 unit: str | Unit = DIMENSIONLESS
                 ) -> Quantity[T]:
         '''set variable and unit.'''

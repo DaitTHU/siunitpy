@@ -7,7 +7,7 @@ from .value_archive import *
 __all__ = [
     '_PI', '_WEIN_ZERO',
     '_PREFIX_DATA', '_PREFIX_FULLNAME',
-    '_BASIC_SI',
+    '_BASE_SI',
     '_UNIT_DATA', '_UNIT_FULLNAME', '_UNIT_STD'
 ]
 
@@ -74,7 +74,7 @@ _LOGARITHMIC_RATIO: dict[str, str] = {
     'Np': 'neper', 'B': 'bel'
 }
 
-_BASIC_SI = ('s', 'm', 'kg', 'A', 'K', 'mol', 'cd')
+_BASE_SI = ('s', 'm', 'kg', 'A', 'K', 'mol', 'cd')
 
 # unit library, classified by dimension
 # it should appear and be used only in this file
@@ -186,9 +186,7 @@ _UNIT_DATA: dict[str, UnitData] = {
 }
 
 _UNIT_FULLNAME: dict[str, str] = {
-    val.fullname: unit
-    for unit_val in __UNIT_LIB.values()
-    for unit, val in unit_val.items()
+    unitdata.fullname: unit for unit, unitdata in _UNIT_DATA.items()
 }
 
 # unit standard, every dimension has one SI basic/standard unit

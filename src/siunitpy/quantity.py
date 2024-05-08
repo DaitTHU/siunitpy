@@ -1,14 +1,37 @@
 import operator
 from copy import copy
-from typing import Any, Callable, Generic, TypeVar
+from typing import Callable, Generic, TypeVar
 
+from .baseunit import BaseUnit
 from .dimension import Dimension
 from .identity import Zero, zero
-from .unit import DIMENSIONLESS, Unit
+from .unit_analysis import _unit_init
 from .utilcollections.abc import Linear
 from .variable import Variable
 
 T = TypeVar('T', bound=Linear)
+
+
+class Unit(BaseUnit):
+    def __init__(self, symbol: str, dim=None, factor=None) -> None:
+        if dim is None:
+            super().__init__(*_unit_init(symbol))
+        else:  # constructor of base class, internal use only
+            super().__init__(symbol, dim, factor)  # type: ignore
+
+    @classmethod
+    def move(cls, unit):
+        '''transform a str/Unit object to a Unit object.'''
+        if isinstance(unit, cls):
+            return unit
+        if isinstance(unit, str):
+            return cls(unit)
+        raise TypeError(f"{type(unit) = } must be 'str' or 'Unit'.")
+    
+    
+
+
+DIMENSIONLESS = Unit('')
 
 
 def _dimension_consistency(left: 'Quantity', right: 'Quantity'):
@@ -23,7 +46,7 @@ def _dimension_consistency(left: 'Quantity', right: 'Quantity'):
 def _comparison(op: Callable[[Variable, Variable], bool]):
     def __op(self: 'Quantity', other: 'Quantity'):
         _dimension_consistency(self, other)
-        return op(self.variable * self.unit.value, other.variable * other.unit.value)
+        return op(self.standard_variable, other.standard_variable)
     return __op
 
 
@@ -42,7 +65,7 @@ def _addsub(op: Callable, iop: Callable):
         if self.isdimensionless() and not isinstance(other, Quantity):
             return Quantity(op(self.variable, other), self.unit)
         _dimension_consistency(self, other)
-        other_var = other.variable * other.unit.valueover(self.unit)
+        other_var = other.variable * other.unit.factor / self.unit.factor
         return Quantity(op(self.variable, other_var), self.unit)
 
     def __iop(self: 'Quantity', other: 'Quantity'):
@@ -51,7 +74,7 @@ def _addsub(op: Callable, iop: Callable):
             return self
         _dimension_consistency(self, other)
         self._variable = iop(self.variable, other.variable *
-                             other.unit.valueover(self.unit))
+                             other.unit.factor / self.unit.factor)
         return self
 
     return __op, __iop
@@ -72,7 +95,7 @@ def _muldiv(op: Callable, iop: Callable, *, unitop=None, inverse: bool = False):
         new_variable = op(self.variable, other.variable)
         new_unit: Unit = unitop(self.unit, other.unit)
         if new_unit.isdimensionless():
-            new_variable *= new_unit.value
+            new_variable *= new_unit.factor
             new_unit = DIMENSIONLESS
         else:
             new_unit, factor = new_unit.simplify_with_factor()
@@ -86,13 +109,13 @@ def _muldiv(op: Callable, iop: Callable, *, unitop=None, inverse: bool = False):
         self._variable = iop(self.variable, other.variable)
         self._unit = unitop(self.unit, other.unit)
         if self.unit.isdimensionless():
-            self._variable *= self.unit.value
+            self._variable *= self.unit.factor
             self._unit = DIMENSIONLESS
         else:
             self._unit, factor = self.unit.simplify_with_factor()
             self._variable *= factor
         return self
-    
+
     if inverse:
         def unary(unit: Unit): return unit.inverse()  # type: ignore
     else:
@@ -128,15 +151,16 @@ class Quantity(Generic[T]):
     def value(self) -> T: return self.variable.value
     @property
     def uncertainty(self) -> T | Zero: return self.variable.uncertainty
-
     @property
-    def relative_uncertainty(self) -> T | Zero:
-        return self.variable.relative_uncertainty
-
+    def relative_uncertainty(self): return self.variable.relative_uncertainty
     @property
     def unit(self) -> Unit: return self._unit
     @property
     def dimension(self) -> Dimension: return self.unit.dimension
+    @property
+    def standard_variable(self): return self.variable * self.unit.factor
+    @property
+    def standard_value(self): return self.value * self.unit.factor
 
     def __repr__(self) -> str:
         return '{}(value={}, uncertainty={}, unit={})'.format(
@@ -166,43 +190,42 @@ class Quantity(Generic[T]):
 
         if `assert_dim`, raise Error when not dimensionally consistent.'''
         new_unit = Unit.move(new_unit)
-        if assert_dim and not self.unit.parallel(new_unit):
+        if assert_dim and self.dimension != new_unit.dimension:
             raise ValueError(
                 f'dimension {self.unit.dimension} != {new_unit.dimension}.')
-        factor = self.unit.valueover(new_unit)
-        return Quantity(self.variable * factor, new_unit)
+        return Quantity(self.standard_variable / new_unit.factor, new_unit)
 
     def ito(self, new_unit: str | Unit, *, assert_dim=True):
         '''inplace unit transform.
-        
+
         if `assert_dim`, raise Error when not dimensionally consistent.
         '''
         new_unit = Unit.move(new_unit)
-        if assert_dim and not self.unit.parallel(new_unit):
+        if assert_dim and self.dimension != new_unit.dimension:
             raise ValueError(
                 f'dimension {self.unit.dimension} != {new_unit.dimension}.')
-        self._variable *= self.unit.valueover(new_unit)
+        self._variable *= self.unit.factor / new_unit.factor
         self._unit = new_unit
         return self
 
     def deprefix_unit(self, *, inplace=False):
         '''remove the prefix of the unit.'''
-        old_unit_value = self.unit.value
+        old_unit_factor = self.unit.factor
         new_unit = self.unit.deprefix()
-        factor = old_unit_value / new_unit.value
+        factor = old_unit_factor / new_unit.factor
         if not inplace:
             return Quantity(self.variable * factor, new_unit)
         self._unit = new_unit
         self._variable *= factor
         return self
 
-    def tobasic_unit(self, *, inplace=False) -> 'Quantity':
+    def tobase_unit(self, *, inplace=False) -> 'Quantity':
         '''transform unit to the combination of `_BASIC_SI` unit with 
         the same dimension.
         '''
-        old_unit_value = self.unit.value
-        new_unit = self.unit.tobasic()
-        factor = old_unit_value / new_unit.value
+        old_unit_factor = self.unit.factor
+        new_unit = self.unit.tobase()
+        factor = old_unit_factor / new_unit.factor
         if not inplace:
             return Quantity(self.variable * factor, new_unit)
         self._unit = new_unit
@@ -213,9 +236,9 @@ class Quantity(Generic[T]):
         '''try if the complex unit can be simplified as u, u⁻¹, u², u⁻², 
         where u represents a single `_BASIC_SI` unit. 
         '''
-        old_unit_value = self.unit.value
+        old_unit_factor = self.unit.factor
         new_unit = self.unit.simplify()
-        factor = old_unit_value / new_unit.value
+        factor = old_unit_factor / new_unit.factor
         if not inplace:
             return Quantity(self.variable * factor, new_unit)
         self._unit = new_unit

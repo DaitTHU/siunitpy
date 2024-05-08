@@ -2,8 +2,7 @@ from typing import TypeVar, overload
 
 from .dimension import Dimension
 from .identity import Zero, zero
-from .quantity import Quantity
-from .unit import DIMENSIONLESS, Unit
+from .quantity import DIMENSIONLESS, Quantity, Unit
 from .utilcollections.abc import Linear
 from .variable import Variable
 

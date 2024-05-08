@@ -12,7 +12,7 @@ _DIM_NUM = len(_DIM_SYMBOL)
 def _unpack_vector():
     '''properties of Dimension.'''
     def __getter(i: int):
-        return lambda self: self.__vector[i]  # closure
+        return lambda self: self[i]  # closure
     return (property(__getter(i)) for i in range(_DIM_NUM))
 
 
@@ -51,6 +51,8 @@ class Dimension:
         return '{}({})'.format(self.__class__.__name__, para)
 
     def __str__(self) -> str:
+        if self.isdimensionless():
+            return '1'
         return ''.join(s + sup(v) for s, v in zip(_DIM_SYMBOL, self) if v)
 
     def __len__(self) -> int: return _DIM_NUM

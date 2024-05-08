@@ -1,4 +1,5 @@
-from .unit import Unit
+from .quantity import DIMENSIONLESS as _DIMENSIONLESS
+from .quantity import Unit
 from .utilcollections.constclass import ConstClass
 
 __all__ = ['UnitConst']
@@ -8,7 +9,7 @@ class UnitConst(ConstClass):
     '''`UnitConst` is an constclass containing constant `Unit`
     objects, like dimensionless unit, 7 SI base units
     '''
-    DIMENSIONLESS = Unit.simple('')
+    DIMENSIONLESS = _DIMENSIONLESS
     METER = Unit('m')
     KILOGRAM = Unit('kg')
     SECOND = Unit('s')

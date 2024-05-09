@@ -1,3 +1,4 @@
+import sys
 from typing import Generic, TypeVar, overload
 
 from .baseunit import BaseUnit
@@ -6,13 +7,69 @@ from .identity import Zero, zero
 from .utilcollections.abc import Linear
 from .variable import Variable
 
-__all__ = ['Unit', 'Quantity', 'DIMENSIONLESS']
+__all__ = ['Quantity']
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing import TypeVar
+    Self = TypeVar('Self', bound='Unit')
 
 T = TypeVar('T', bound=Linear)
 
 
 class Unit(BaseUnit):
-    def __init__(self, symbol: str): ...
+    '''`Unit` is a immutable object:
+    - `symbol`: string expression of the unit.
+    - `dimension`: `Dimension`, dimension of the unit.
+    - `value`: 1 unit = ? standard-unit.
+
+    Construct
+    ---
+    define unit combination:
+    >>> vilocity_unit = Unit('m/s')
+    >>> force_unit = Unit('kg.m/s2')
+
+    for more detail construct rules, see constructor doc.
+
+    Transformation
+    ---
+    '''
+
+    def __init__(self, symbol: str):
+        '''construct from unit symbol (str). 
+
+        Rules for unit symbol
+        ---
+        - unit should be linked from basic units, which are called elements,
+        like `'kg'`, `'s'`, `'meV'`...
+        - the linker should be one of: `'/'`, `'.'`, `'·'`, where `'/'` 
+        represents division, while `'.'` and `'·'` represent multiplication.
+        - the exponents of the elements should be written after the elements,
+        like `'m2'`, `'m-1'`, `'m³'`, `'m^+114514'` are all acceptable.
+        - The standard form has only one `'/'`, and all subsequent elements 
+        are represented as denominators, which does not cause any ambiguity.
+        Therefore, `Unit('kg/m/s') == Unit('kg/m.s')`.
+        - following these basic rules you can easily get used to it, and 
+        properly using it will give you proper result.
+
+        Example
+        ---
+        - legal expression example:
+
+        >>> Unit('kg.m/s2')
+        >>> Unit('MeV/c2')
+        >>> Unit('T.W/m2.K4')
+
+        - illegal expression example: 
+
+        >>> Unit('x')   # UnitSymbolError: 'x' is not a valid unit.
+        >>> Unit('m+m') # UnitSymbolError: 'm+m' is not a valid element unit.
+        '''
+    @classmethod
+    def move(cls, unit: str | Self) -> Self: ...
+    def __rmul__(self, other: Variable[T] | Quantity[T]) -> Quantity[T]: ...
+    def __rmatmul__(self, other: T | Variable[T] | Quantity[T]) -> Quantity[T]: ...
 
 
 DIMENSIONLESS: Unit
@@ -79,7 +136,7 @@ class Quantity(Generic[T]):
     def to(self, new_unit: str | Unit, *, assert_dim=True) -> Quantity[T]: ...
     def ito(self, new_unit: str | Unit, *, assert_dim=True) -> Quantity[T]: ...
     def deprefix_unit(self, *, inplace=False) -> Quantity[T]: ...
-    def tobasic_unit(self, *, inplace=False) -> Quantity[T]: ...
+    def tobase_unit(self, *, inplace=False) -> Quantity[T]: ...
     def simplify_unit(self, *, inplace=False) -> Quantity[T]: ...
     def remove_uncertainty(self) -> Quantity[T]: ...
     def __eq__(self, other: Quantity[T]) -> bool: ...
@@ -92,10 +149,19 @@ class Quantity(Generic[T]):
     def __neg__(self) -> Quantity[T]: ...
     def __add__(self, other: T | Quantity[T]) -> Quantity[T]: ...
     def __sub__(self, other: T | Quantity[T]) -> Quantity[T]: ...
+    @overload
     def __mul__(self, other: float | T | Quantity[float] | Quantity[T]) -> Quantity[T]: ...
+    @overload
+    def __mul__(self, unit: Unit) -> Quantity[T]: ...
+    @overload
     def __matmul__(self, other: T | Quantity[T]) -> Quantity[T]: ...
+    @overload
+    def __matmul__(self, new_unit: Unit) -> Quantity[T]: ...
     def __floordiv__(self, other: T | Quantity[T]) -> Quantity[T]: ...
+    @overload
     def __truediv__(self, other: float | T | Quantity[float] | Quantity[T]) -> Quantity[T]: ...
+    @overload
+    def __truediv__(self, unit: Unit) -> Quantity[T]: ...
     def __pow__(self, other) -> Quantity[T]: ...
     def __iadd__(self, other: T | Quantity[T]) -> Quantity[T]: ...
     def __isub__(self, other: T | Quantity[T]) -> Quantity[T]: ...

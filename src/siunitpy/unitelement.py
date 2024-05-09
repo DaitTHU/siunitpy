@@ -93,7 +93,7 @@ class UnitElement:
     @property
     def prefix_factor(self) -> float: return _PREFIX_DATA[self.prefix].factor
     @property
-    def base_factor(self) -> float: return _UNIT_DATA[self.base].value
+    def base_factor(self) -> float: return _UNIT_DATA[self.base].factor
     @property
     def factor(self) -> float: return self.prefix_factor * self.base_factor
     @property

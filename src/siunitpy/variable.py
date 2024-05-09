@@ -69,8 +69,11 @@ def _addsub(op: Callable, iop: Callable):
         self._value = iop(self.value, other.value)
         self._uncertainty = _hypotenuse(self.uncertainty, other.uncertainty)
         return self
+    
+    def __rop(self: 'Variable', other):
+        return Variable(op(other, self.value), self.uncertainty)
 
-    return __op, __iop
+    return __op, __iop, __rop
 
 
 def _muldiv(op: Callable, iop: Callable):
@@ -180,8 +183,8 @@ class Variable(Generic[T]):
     __pos__ = _unary(operator.pos)
     __neg__ = _unary(operator.neg)
 
-    __add__, __iadd__ = _addsub(operator.add, operator.iadd)
-    __sub__, __isub__ = _addsub(operator.sub, operator.isub)
+    __add__, __iadd__, __radd__ = _addsub(operator.add, operator.iadd)
+    __sub__, __isub__, __rsub__ = _addsub(operator.sub, operator.isub)
 
     __mul__, __imul__, __rmul__ = _muldiv(operator.mul, operator.imul)
     __matmul__, __imatmul__, __rmatmul__ = _muldiv(

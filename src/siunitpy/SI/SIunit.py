@@ -1,12 +1,11 @@
-from ..constant import OneUnit
-from ..unitconst import UnitConst
+from ..unit import Unit, DIMENSIONLESS
 from ..utilcollections.constclass import ConstClass
 
 __all__ = ['si']
 
 
 def _base(unit: str):
-    return lambda prefix: OneUnit(prefix + unit)
+    return lambda prefix: Unit(prefix + unit)
 
 
 class si(ConstClass):
@@ -26,58 +25,45 @@ class si(ConstClass):
     >>> numpy.array([1, 2]) @ si.m
     # [1, 2] m
     '''
-    I = one = OneUnit(UnitConst.DIMENSIONLESS)
-    m = OneUnit(UnitConst.METER)
-    kg = OneUnit(UnitConst.KILOGRAM)
-    s = OneUnit(UnitConst.SECOND)
-    A = OneUnit(UnitConst.AMPERE)
-    K = OneUnit(UnitConst.KELVIN)
-    mol = OneUnit(UnitConst.MOLE)
-    cd = OneUnit(UnitConst.CANDELA)
+    I = one = DIMENSIONLESS
+    fm, pm, nm, um, mm, cm, m, km = map(_base('m'), 'fpnumc k')
+    mg, g, kg = map(_base('g'), 'm k')
+    fs, ps, ns, us, ms, s = map(_base('s'), 'fpnum ')
+    mA, A = map(_base('A'), 'm ')
+    mK, K = map(_base('K'), 'm ')
+    mmol, mol = map(_base('mol'), 'm ')
+    cd = Unit('cd')
     # derived
-    Hz = OneUnit(UnitConst.HERTZ)
-    rad = OneUnit(UnitConst.RADIAN)
-    sr = OneUnit(UnitConst.STERADIAN)
-    N = OneUnit(UnitConst.NEWTON)
-    Pa = OneUnit(UnitConst.PASCAL)
-    J = OneUnit(UnitConst.JOULE)
-    W = OneUnit(UnitConst.WATT)
-    C = OneUnit(UnitConst.COULOMB)
-    V = OneUnit(UnitConst.VOLT)
-    F = OneUnit(UnitConst.FARAD)
-    ohm = OneUnit(UnitConst.OHM)
-    S = OneUnit(UnitConst.SIEMENS)
-    Wb = OneUnit(UnitConst.WEBER)
-    T = OneUnit(UnitConst.TESLA)
-    H = OneUnit(UnitConst.HENRY)
-    # celsius = OneUnit(UnitConst.DEGREE_CELSIUS)
-    lm = OneUnit(UnitConst.LUMEN)
-    lx = OneUnit(UnitConst.LUX)
-    Bq = OneUnit(UnitConst.BECQUEREL)
-    Gy = OneUnit(UnitConst.GRAY)
-    Sv = OneUnit(UnitConst.SIEVERT)
-    kat = OneUnit(UnitConst.KATAL)
+    Hz, kHz, MHz, GHz, THz = map(_base('Hz'), ' kMGT')
+    rad = Unit('rad')
+    sr = Unit('sr')
+    N, kN = map(_base('N'), ' k')
+    Pa, kPa, MPa, GPa = map(_base('Pa'), ' kMG')
+    mJ, J, kJ, MJ = map(_base('J'), 'm kM')
+    mW, W, kW, MW = map(_base('W'), 'm kM')
+    C = Unit('C')
+    mV, V, kV = map(_base('V'), 'm k')
+    pF, nF, uF, mF, F = map(_base('F'), 'pnum ')
+    ohm, kohm = map(_base('Ω'), ' k')
+    S = Unit('S')
+    Wb = Unit('Wb')
+    T = Unit('T')
+    H = Unit('H')
+    # celsius = Unit('°C')
+    lm = Unit('lm')
+    lx = Unit('lx')
+    Bq = Unit('Bq')
+    Gy = Unit('Gy')
+    nSv, uSv, mSv, Sv = map(_base('Sv'), 'num ')
+    kat = Unit('kat')
     # common prefixed SI unit
-    fm, pm, nm, um, mm, cm, km = map(_base('m'), 'fpnumck')
-    mg, g = map(_base('g'), 'm ')
-    fs, ps, ns, us, ms = map(_base('s'), 'fpnum')
-    minute = OneUnit('min')
-    h = OneUnit('h')
-    mA = OneUnit('mA')
-    mK = OneUnit('mK')
-    mmol = OneUnit('mmol')
-    kHz, MHz, GHz, THz = map(_base('Hz'), 'kMGT')
-    kPa, MPa, GPa = map(_base('Pa'), 'kMG')
-    mJ, kJ, MJ = map(_base('J'), 'mkM')
-    mW, kW, MW = map(_base('W'), 'mkM')
-    mV, kV = map(_base('V'), 'mk')
-    kohm = OneUnit('kΩ')
-    nSv, uSv, mSv = map(_base('Sv'), 'num')
+    minute = Unit('min')
+    h = Unit('h')
     # NOT in SI unit
     mL, L = map(_base('L'), 'm ')
-    bar = OneUnit('bar')
-    atm = OneUnit('atm')
-    mmHg = OneUnit('mmHg')
+    bar = Unit('bar')
+    atm = Unit('atm')
+    mmHg = Unit('mmHg')
     Wh, kWh = map(_base('Wh'), ' k')
     meV, eV, keV, MeV, GeV, TeV = map(_base('eV'), 'm kMGT')
     cal, kcal = map(_base('cal'), ' k')

@@ -182,11 +182,13 @@ class Quantity(Generic[T]):
 
     def __init__(self, value: T | Variable[T], /,
                  unit: str | Unit = DIMENSIONLESS,
-                 uncertainty: T | Zero = zero) -> None:
+                 uncertainty: T | Zero = zero, *,
+                 relative_uncertainty: T | Zero = zero) -> None:
         if isinstance(value, Variable):
             self._variable = value
         else:
-            self._variable = Variable(value, uncertainty)
+            self._variable = Variable(value, uncertainty, \
+                relative_uncertainty=relative_uncertainty) # type: ignore
         self._unit = Unit.move(unit)
 
     @classmethod

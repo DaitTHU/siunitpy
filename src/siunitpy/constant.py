@@ -21,6 +21,13 @@ class Constant(Quantity[T]):
     __ipow__ = _inplace(operator.pow)  # type: ignore
 
 
-def constant(quantity: Quantity[T]):
+def constant(quantity: Quantity[T], unit=None, *, simplify=False,
+             relative_uncertainty=None):
     '''to make a Quantity object to a Constant.'''
+    if unit is not None:
+        quantity.ito(unit)
+    elif simplify:
+        quantity.simplify_unit(inplace=True)
+    if relative_uncertainty is not None:
+        quantity.relative_uncertainty = relative_uncertainty
     return Constant(quantity.variable, quantity.unit)

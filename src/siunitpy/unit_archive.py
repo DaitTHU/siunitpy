@@ -5,35 +5,10 @@ from .utilcollections.utils import firstof
 from .value_archive import *
 
 __all__ = [
-    '_PI', '_WEIN_ZERO',
     '_PREFIX_DATA', '_PREFIX_FULLNAME',
     '_BASE_SI',
     '_UNIT_DATA', '_UNIT_FULLNAME', '_UNIT_STD'
 ]
-
-
-## unit value definition
-# time
-_MINUTE = 60
-_HOUR = 60 * _MINUTE
-_DAY = 24 * _HOUR
-_SIMPLE_YEAR = 365 * _DAY
-_JULIAN_YEAR = _SIMPLE_YEAR + _DAY // 4
-_LIGHT_YEAR = _C * _JULIAN_YEAR
-# degree
-_DEGREE = _PI / 180
-_ARCMIN = _DEGREE / 60
-_ARCSEC = _ARCMIN / 60
-# others
-_EV = _ELC                  # elctron volt
-_DALTON = 1.660539040e-27   # 1 Dalton = mass(12C) / 12
-_AU = 149597870700          # astronomical unit
-_PC = _AU / _ARCSEC         # parsec
-_ATM = 101325               # standard atmosphere
-_SSP = 100000               # standard-state pressure
-_MMHG = _ATM / 760          # 1 mmHg = 1 atm / 760
-_CAL = 4.184                # calorie
-
 
 _PREFIX_DATA: dict[str, PrefixData] = {
     # whole unit
@@ -66,6 +41,7 @@ _PREFIX_DATA: dict[str, PrefixData] = {
 }
 
 _PREFIX_FULLNAME: dict[str, str] = {v.fullname: k for k, v in _PREFIX_DATA.items()}
+'''{prefix fullname: symbol}'''
 
 
 _SPECIAL_DIMENSIONLESS: dict[str, float] = {
@@ -85,30 +61,30 @@ __UNIT_LIB: dict[Dimension, dict[str, BaseData]] = {
         '': BaseData('', 1),
         'rad': BaseData('radian', 1),
         'sr': BaseData('steradian', 1),
-        '°': BaseData('degree', _DEGREE, never_prefix=True),
-        '′': BaseData('arcminute', _ARCMIN, never_prefix=True),
-        '″': BaseData('arcsecond', _ARCSEC, never_prefix=True),
+        '°': BaseData('degree', DEGREE, never_prefix=True),
+        '′': BaseData('arcminute', ARCMIN, never_prefix=True),
+        '″': BaseData('arcsecond', ARCSEC, never_prefix=True),
     },
     DimensionConst.LENGTH: {
         'm': BaseData('meter', 1),
         'Å': BaseData('angstrom', 1e-10),  # ångström
-        'au': BaseData('astronomical-unit', _AU),
-        'pc': BaseData('parsec', _PC),
-        'ly': BaseData('light-year', _LIGHT_YEAR)
+        'au': BaseData('astronomical-unit', AU),
+        'pc': BaseData('parsec', PC),
+        'ly': BaseData('light-year', LIGHT_YEAR)
     },
     DimensionConst.MASS: {
         'g': BaseData('gram', 1e-3),
         't': BaseData('ton', 1000),
-        'u': BaseData('amu', _DALTON),
-        'Da': BaseData('dalton', _DALTON),
+        'u': BaseData('amu', DALTON),
+        'Da': BaseData('dalton', DALTON),
     },
     DimensionConst.TIME: {
         's': BaseData('second', 1),
-        'min': BaseData('minute', _MINUTE),
-        'h': BaseData('hour', _HOUR),
-        'd': BaseData('day', _DAY),
-        'yr': BaseData('year', _SIMPLE_YEAR),
-        'a': BaseData('Julian-year', _JULIAN_YEAR),
+        'min': BaseData('minute', MINUTE),
+        'h': BaseData('hour', HOUR),
+        'd': BaseData('day', DAY),
+        'yr': BaseData('year', SIMPLE_YEAR),
+        'a': BaseData('Julian-year', JULIAN_YEAR),
     },
     DimensionConst.ELECTRIC_CURRENT: {
         'A': BaseData('ampere', 1),
@@ -140,29 +116,29 @@ __UNIT_LIB: dict[Dimension, dict[str, BaseData]] = {
         'Ci': BaseData('curie', 3.7e10),
     },
     DimensionConst.VILOCITY: {
-        'c': BaseData('speed-of-light', _C, never_prefix=True),
+        'c': BaseData('speed-of-light', C, never_prefix=True),
     },
     DimensionConst.ACCELERATOR: {
         'gal': BaseData('Gal', 0.01),
     },
     DimensionConst.FORCE: {
         'N': BaseData('newton', 1),
-        'gf': BaseData('gram-fore', _GRAVITY / 1000)
+        'gf': BaseData('gram-fore', GRAVITY / 1000)
     },
     DimensionConst.PRESSURE: {
         'Pa': BaseData('pascal', 1),
-        'bar': BaseData('bar', _SSP),
-        'atm': BaseData('standard-atmosphere', _ATM),
-        'mHg': BaseData('meter-of-mercury', _MMHG * 1000),
-        'Torr': BaseData('torr', _MMHG),  # Torricelli
+        'bar': BaseData('bar', SSP),
+        'atm': BaseData('standard-atmosphere', ATM),
+        'mHg': BaseData('meter-of-mercury', MMHG * 1000),
+        'Torr': BaseData('torr', MMHG),  # Torricelli
     },
     DimensionConst.ENERGY: {
         'J': BaseData('joule', 1),
-        'Wh': BaseData('watthour', _HOUR),
-        'eV': BaseData('electronvolt', _EV),
-        'cal': BaseData('calorie', _CAL),
-        'g-TNT': BaseData('gram-of-TNT', _CAL * 1000),
-        't-TNT': BaseData('ton-of-TNT', _CAL * 1e9),
+        'Wh': BaseData('watthour', HOUR),
+        'eV': BaseData('electronvolt', EV),
+        'cal': BaseData('calorie', CAL),
+        'g-TNT': BaseData('gram-of-TNT', KCAL),
+        't-TNT': BaseData('ton-of-TNT', KCAL * 1e6),
     },
     DimensionConst.POWER: {'W': BaseData('watt', 1), },
     # DimensionConst.MOMENTUM
@@ -197,6 +173,7 @@ _UNIT_DATA: dict[str, BaseData] = {
 _UNIT_FULLNAME: dict[str, str] = {
     basedata.fullname: unit for unit, basedata in _UNIT_DATA.items()
 }
+'''{unit fullname: symbol}'''
 
 # unit standard, every dimension has one SI basic/standard unit
 # values() = {m kg s A K mol cd Hz N Pa J W C V F Ω S Wb T H lx Gy kat}
@@ -211,4 +188,5 @@ _UNIT_STD: dict[Dimension, str] = {
     for dim, unit_val in __UNIT_LIB.items()
     if dim not in __IRREGULAR_UNIT_DIM
 }
+'''standard unit for dimension'''
 _UNIT_STD[DimensionConst.MASS] = 'kg'

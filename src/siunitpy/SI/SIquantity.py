@@ -39,19 +39,19 @@ class SI(ConstClass):
     # Faraday constant
     F = constant(NA * e)
     # molar Planck constant
-    NAh = constant(NA * h)
+    # NAh = constant(NA * h)
     # reduced Planck constant
     hbar = constant(h / (2 * _PI))
     # Stefan-Boltzmann constant
-    sigma = constant((2 * _PI**5 * kB**4 / (15 * h**3 * c**2)).ito('W/m2.K4'))
-    # Wien wavelength displacement law constant
-    b = constant(h * c / (kB * _WEIN_ZERO))
-    # first radiation constant
-    c1 = constant((2 * _PI * h * c**2).ito('W.m2'))
+    sigma = constant((_PI**2/60 * kB**4 / (hbar**3 * c**2)).ito('W/m2.K4'))
     # first radiation constant for spectral radiance
-    c1L = constant(c1 / Constant(_PI, 'sr'))
+    c1L = constant((2 * h * c**2).ito('W.m2/sr'))
+    # first radiation constant
+    c1 = constant(c1L * _PI * si.sr)
     # second radiation constant
     c2 = constant(h * c / kB)
+    # Wien wavelength displacement law constant
+    b = constant(c2 / _WEIN_ZERO)
     # conductance quantum
     G0 = constant((2 * e**2 / h).simplify_unit(inplace=True))
     # Josephson constant
@@ -78,8 +78,7 @@ class SI(ConstClass):
     mu = Constant(1.660_539_066_60e-27, 'kg',
                   0.000_000_000_50e-27)
     # molar mass constant
-    Mu = Constant(0.999_999_999_65, 'g/mol',
-                  0.000_000_000_30)
+    Mu = (mu * NA).ito('g/mol')
     # molar mass of C-12
     M12C = constant(12 * Mu)
     # Newtonian constant of gravitation
@@ -98,7 +97,7 @@ class SI(ConstClass):
     # characteristic impedance of vacuum
     Z0 = constant((mu0 / epsilon0).simplify_unit(inplace=True).nthroot(2))
     # fine-structure constant
-    alpha = constant(e**2 / (2 * epsilon0 * h * c))
+    alpha = constant((e**2 / (2 * epsilon0 * h * c)).simplify_unit(inplace=True))
     # inverse fine-structure constant
     alphainv = constant(1 / alpha)
     # particle mass

@@ -89,7 +89,28 @@ class BaseUnit:
         return self, 1  # fail to simplify
 
     def simplify(self):
+        '''try if the complex unit can be simplified as a single unit
+        (i.e. `u`, `u⁻¹`, `u²`, `u⁻²`). 
+        
+        `u` is one of the chosen standard SI units for different dimensions,
+        like mass for kg, length for m, time for s, etc.
+        Here is the full list of them:
+        - Base: m[L], kg[M], s[T], A[I], K[H], mol[N], cd[J];
+        - Mechanic: Hz[T⁻¹], N[T⁻²LM], Pa[T⁻²L⁻¹M], J[T⁻²L²M], W[T⁻³L²M];
+        - Electromagnetic: C[TI], V[T⁻³L²MI⁻¹], F[T⁴L⁻²M⁻¹I²], Ω[T⁻³L²MI⁻²], 
+            S[T³L⁻²M⁻¹I²], Wb[T⁻²L²MI⁻¹], T[T⁻²MI⁻¹], H[T⁻²L²MI⁻²];
+        - Other: lx[L⁻²J], Gy[T⁻²L²], kat[T⁻¹N]
+        '''
         return self.simplify_with_factor()[0]
+    
+    def reduce(self, unit):
+        '''TODO: 
+        
+        example: 
+        >>> Unit('ohm.A2/m3').reduce('W')
+        Unit('W/m3')
+        '''
+        pass
 
     def inverse(self):
         '''inverse of the unit.'''

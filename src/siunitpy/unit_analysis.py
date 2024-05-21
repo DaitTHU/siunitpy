@@ -94,8 +94,4 @@ def _unit_init(symbol: str) -> tuple[Compound[UnitElement], Dimension, float]:
     elements = _resolve(symbol)
     dimension = Dimension.product(u.dimension**e for u, e in elements.items())
     factor = float_product(u.factor**e for u, e in elements.items())
-    if isinstance(factor, float) and factor.is_integer():
-        factor = int(factor)
-    if dimension.isdimensionless() and factor == 1:
-        elements.clear()
     return elements, dimension, factor

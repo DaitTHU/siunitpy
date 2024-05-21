@@ -14,7 +14,7 @@ T = TypeVar('T', bound=Linear)
 
 def unit_rop_warn():
     import warnings
-    unit_rop_warning_message = "To directly assign unit to a value to make \
+    unit_rop_warning_message = "To directly assign a unit to a value to make \
 it a Quantity object, please use expression 'value @ unit', the expression \
 'value * unit' or 'value / unit' may produce unintended results."
     warnings.warn(unit_rop_warning_message, SyntaxWarning, stacklevel=3)
@@ -38,7 +38,7 @@ class Unit(BaseUnit):
 
     def __rmul__(self, other):
         '''only used when type(other) is not Unit (and not Quantity).
-        equivalent to multiplying by 1 unit quantity.
+        value * unit = Quantity(value, unit)
         '''
         if isinstance(other, Variable):
             return Quantity(other, self)
@@ -48,8 +48,7 @@ class Unit(BaseUnit):
         return Quantity(other, self)
 
     def __rtruediv__(self, other):
-        '''only used when type(other) is Quantity.
-        equivalent to multiplying by 1 unit quantity.
+        '''value / unit = Quantity(value, unit.inverse())
         '''
         if isinstance(other, Variable):
             return Quantity(other, self.inverse())
@@ -59,8 +58,8 @@ class Unit(BaseUnit):
         return Quantity(other, self.inverse())
 
     def __rmatmul__(self, other):
-        '''operator `@` means 'at', 
-        i.e. directly assign the unit to `other`.
+        '''operator `@` means 'at', i.e. directly assign the unit to `other`.
+        value @ unit = Quantity(value, unit)
         '''
         return Quantity(other, self)  # type(other) is not Quantity
 
@@ -78,10 +77,11 @@ def assert_dimension_consistency(left, right):
 
 def _comparison(op: Callable[[Variable, Variable], bool]):
     '''construct operator: a == b, a != b, a > b, ...
-    
+
     if a is dimensionless, b can be non-quantity. 
     Otherwise, a and b should meet dimension consistency.
     '''
+
     def __op(self: 'Quantity', other: 'Quantity'):
         if self.isdimensionless() and not isinstance(other, Quantity):
             return op(self.standard_variable, other)
@@ -92,7 +92,7 @@ def _comparison(op: Callable[[Variable, Variable], bool]):
 
 def _addsub(op: Callable, iop: Callable):
     '''construct operator: a + b, a - b.
-    
+
     if a is dimensionless, b can be non-quantity. 
     Otherwise, a and b should meet dimension consistency.
     '''
@@ -107,14 +107,14 @@ def _addsub(op: Callable, iop: Callable):
     def __iop(self: 'Quantity', other: 'Quantity'):
         if self.isdimensionless() and not isinstance(other, Quantity):
             self._variable *= self.unit.factor
-            self._variable = iop(self.variable, other)
+            self._variable = iop(self._variable, other)
             self._unit = DIMENSIONLESS
             return self
         assert_dimension_consistency(self, other)
         other_var = other.variable * (other.unit.factor / self.unit.factor)
-        self._variable = iop(self.variable, other_var)
+        self._variable = iop(self._variable, other_var)
         return self
-    
+
     def __rop(self: 'Quantity', other):
         '''type(other) is not Quantity.'''
         if not self.isdimensionless():
@@ -131,11 +131,11 @@ def _muldiv(op: Callable, iop: Callable, *, unitop=None, inverse=False):
     when a or b is not a `Quantity` object, which will be treated as a
     dimensionless Quantity.
     '''
-    # unitop: unit [op] unit, [op] being * or /
+    # unitop: unit [op] unit, [op] = * or /
     if unitop is None:
         unitop = op
 
-    # opunit: quantity [op] unit, [op] being *, / or @
+    # opunit: quantity [op] unit, [op] = *, / or @
     if op is operator.matmul:
         # quantity @ unit, directly assign the unit
         def opunit(selfunit, unit): return unit
@@ -147,14 +147,9 @@ def _muldiv(op: Callable, iop: Callable, *, unitop=None, inverse=False):
             return Quantity(self.variable, opunit(self.unit, other))
         if not isinstance(other, Quantity):
             return Quantity(op(self.variable, other), self.unit)
-        new_variable = op(self.variable, other.variable)
-        new_unit: Unit = unitop(self.unit, other.unit)
-        if new_unit.isdimensionless():
-            return Quantity(new_variable * new_unit.factor)
-        else:
-            new_unit, factor = new_unit.simplify_with_factor()
-            new_variable *= factor
-        return Quantity(new_variable, new_unit)
+        result = Quantity(op(self.variable, other.variable),
+                          unitop(self.unit, other.unit))
+        return result
 
     def __iop(self: 'Quantity', other: 'Quantity'):
         if isinstance(other, Unit):
@@ -165,12 +160,6 @@ def _muldiv(op: Callable, iop: Callable, *, unitop=None, inverse=False):
             return self
         self._variable = iop(self._variable, other.variable)
         self._unit = unitop(self._unit, other.unit)
-        if self.unit.isdimensionless():
-            self._variable *= self.unit.factor
-            self._unit = DIMENSIONLESS
-        else:
-            self._unit, factor = self.unit.simplify_with_factor()
-            self._variable *= factor
         return self
 
     # unary operator of unit when non-quantity [op] quantity
@@ -220,11 +209,11 @@ class Quantity(Generic[T]):
 
     @property
     def relative_uncertainty(self): return self.variable.relative_uncertainty
-    
+
     @relative_uncertainty.setter
     def relative_uncertainty(self, relative_uncertainty: T | Zero):
         self._variable.relative_uncertainty = relative_uncertainty
-    
+
     @property
     def unit(self) -> Unit: return self._unit
     @unit.setter
@@ -257,7 +246,7 @@ class Quantity(Generic[T]):
 
     def copy(self) -> 'Quantity':
         return Quantity(copy(self.variable), self.unit)
-    
+
     def _to(self, new_unit: Unit, factor: float, inplace: bool):
         '''internal use only.'''
         if inplace:
@@ -294,9 +283,13 @@ class Quantity(Generic[T]):
         return self._to(new_unit, factor, inplace)
 
     def simplify_unit(self, *, inplace=False) -> 'Quantity':
-        '''try if the complex unit can be simplified as u, u⁻¹, u², u⁻², 
-        where u represents a single SI unit. 
+        '''try if the complex unit can be simplified as a single unit
+        (i.e. `u`, `u⁻¹`, `u²`, `u⁻²`).
+        
+        see `Unit.simplify.__doc__` for more infomation about `u`.
         '''
+        if self.isdimensionless():
+            return self._to(DIMENSIONLESS, self.unit.factor, inplace)
         new_unit, factor = self.unit.simplify_with_factor()
         return self._to(new_unit, factor, inplace)
 

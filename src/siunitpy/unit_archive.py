@@ -65,6 +65,14 @@ __UNIT_LIB: dict[Dimension, dict[str, BaseData]] = {
         '′': BaseData('arcminute', ARCMIN, never_prefix=True),
         '″': BaseData('arcsecond', ARCSEC, never_prefix=True),
     },
+    DimensionConst.TIME: {
+        's': BaseData('second', 1),
+        'min': BaseData('minute', MINUTE),
+        'h': BaseData('hour', HOUR),
+        'd': BaseData('day', DAY),
+        'yr': BaseData('year', SIMPLE_YEAR),
+        'a': BaseData('Julian-year', JULIAN_YEAR),
+    },
     DimensionConst.LENGTH: {
         'm': BaseData('meter', 1),
         'Å': BaseData('angstrom', 1e-10),  # ångström
@@ -77,14 +85,6 @@ __UNIT_LIB: dict[Dimension, dict[str, BaseData]] = {
         't': BaseData('ton', 1000),
         'u': BaseData('amu', DALTON),
         'Da': BaseData('dalton', DALTON),
-    },
-    DimensionConst.TIME: {
-        's': BaseData('second', 1),
-        'min': BaseData('minute', MINUTE),
-        'h': BaseData('hour', HOUR),
-        'd': BaseData('day', DAY),
-        'yr': BaseData('year', SIMPLE_YEAR),
-        'a': BaseData('Julian-year', JULIAN_YEAR),
     },
     DimensionConst.ELECTRIC_CURRENT: {
         'A': BaseData('ampere', 1),
@@ -103,17 +103,17 @@ __UNIT_LIB: dict[Dimension, dict[str, BaseData]] = {
         'lm': BaseData('lumen', 1),
     },
     # derived
+    DimensionConst.FREQUENCY: {
+        'Hz': BaseData('hertz', 1),
+        'Bq': BaseData('becquerel', 1),
+        'Ci': BaseData('curie', 3.7e10),
+    },
     DimensionConst.AREA: {
         'b': BaseData('barn', 1e-28),
         'ha': BaseData('hectare', 10000, never_prefix=True),
     },
     DimensionConst.VOLUME: {
         'L': BaseData('liter', 1e-3),
-    },
-    DimensionConst.FREQUENCY: {
-        'Hz': BaseData('hertz', 1),
-        'Bq': BaseData('becquerel', 1),
-        'Ci': BaseData('curie', 3.7e10),
     },
     DimensionConst.VILOCITY: {
         'c': BaseData('speed-of-light', C, never_prefix=True),
@@ -128,6 +128,7 @@ __UNIT_LIB: dict[Dimension, dict[str, BaseData]] = {
     DimensionConst.PRESSURE: {
         'Pa': BaseData('pascal', 1),
         'bar': BaseData('bar', SSP),
+        'ssp': BaseData('standard-state-pressure', SSP),
         'atm': BaseData('standard-atmosphere', ATM),
         'mHg': BaseData('meter-of-mercury', MMHG * 1000),
         'Torr': BaseData('torr', MMHG),  # Torricelli

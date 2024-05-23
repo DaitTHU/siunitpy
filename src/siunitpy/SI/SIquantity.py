@@ -1,5 +1,5 @@
 from ..constant import Constant, constant
-from ..value_archive import PI, WEIN_F_ZERO, WEIN_ZERO, GRAVITY
+from ..value_archive import *
 from ..utilcollections.constclass import ConstClass
 from .SIunit import si
 
@@ -7,23 +7,27 @@ __all__ = ['SI']
 
 
 class SI(ConstClass):
-    '''This constclass provides common physic constants,
-    like speed of light c, Planck const h... which are all
-    immutable `Quantity` object with proper unit.
-    >>> SI.g    # 9.8067 m/s2
+    '''The `SI` constclass offers common fundamental physical constants,
+    like speed of light (c), Planck const (h)... which are all
+    immutable `Quantity` objects with proper units.
 
-    use them directly.
+    For example, accessing the standard acceleration of gravity (g) 
+    can be done as follows:
+    >>> SI.g
+    9.80665 m/s²
+
+    These constants can be directly incorporated into your formulas or code.
     '''
 
     # exact constants defined by SI
 
-    nu133Cs = Constant(9_192_631_770, 'Hz')
+    nu133Cs = Constant(9_192_631_770, si.Hz)
     '''hyperfine transition frequency of Cs-133'''
-    c = Constant(299_792_458, 'm/s')
+    c = Constant(C, 'm/s')
     '''speed of light in vacuum'''
     h = Constant(6.626_070_15e-34, 'J.s')
     '''Planck constant'''
-    e = Constant(1.602_176_634e-19, 'C')
+    e = Constant(ELC, si.C)
     '''elementary charge'''
     kB = Constant(1.380_649e-23, 'J/K')
     '''Boltzmann constant'''
@@ -32,11 +36,16 @@ class SI(ConstClass):
     Kcd = Constant(683, 'lm/W')
     '''luminous efficacy'''
 
-    # universal
-
     hbar = constant(h / (2 * PI))
     '''reduced Planck constant'''
-    G = Constant(6.67430e-11, 'm3/kg.s2', relative_uncertainty=2.2e-5)
+    g = Constant(GRAVITY, 'm/s2')
+    '''standard acceleration of gravity'''
+    T0 = Constant(KELVIN_ZERO, si.K)
+    '''standard temperature'''
+
+    # universal
+
+    G = Constant(6.674_30e-11, 'm3/kg.s2', relative_uncertainty=2.2e-5)
     '''Newtonian constant of gravitation'''
     mP = constant((hbar * c / G).nthroot(2), simplify=True)
     '''Planck mass'''
@@ -49,16 +58,14 @@ class SI(ConstClass):
 
     # electromagnetic constants
 
-    mu0 = Constant(1.256_637_062_12e-6, 'H/m', relative_uncertainty=1.5e-10)
+    mu0 = Constant(1.256_637_061_27e-6, 'H/m', relative_uncertainty=1.6e-10)
     '''vacuum magnetic permeability'''
     epsilon0 = constant(1 / (mu0 * c**2), 'F/m')
     '''vacuum electric permittivity'''
     Z0 = constant(mu0 * c, simplify=True)
     '''characteristic impedance of vacuum'''
-    # ke = constant(1 / (4 * _PI * epsilon0))
-    # '''Coulomb constant'''
-    # km = constant(mu0 / (4 * _PI))
-    # '''magnetic constant'''
+    ke = constant(1 / (4 * PI * epsilon0))
+    '''Coulomb constant'''
     KJ = constant(2 * e / h, 'Hz/V')
     '''Josephson constant'''
     Phi0 = constant(1 / KJ, simplify=True)
@@ -70,23 +77,23 @@ class SI(ConstClass):
 
     # atomic and nuclear
 
-    me = Constant(9.109_383_7015e-31, 'kg', relative_uncertainty=3.0e-10)
+    me = Constant(9.109_383_7139e-31, si.kg, relative_uncertainty=3.1e-10)
     '''electron mass'''
-    mmu = Constant(1.883_531_627e-28, 'kg', relative_uncertainty=2.2e-8)
+    mmu = Constant(1.883_531_627e-28, si.kg, relative_uncertainty=2.2e-8)
     '''muon mass'''
-    mtau = Constant(3.167_54e-27, 'kg', relative_uncertainty=6.8e-5)
+    mtau = Constant(3.167_54e-27, si.kg, relative_uncertainty=6.8e-5)
     '''tau mass'''
-    mp = Constant(1.672_621_923_69e-27, 'kg', relative_uncertainty=3.1e-10)
+    mp = Constant(1.672_621_925_95e-27, si.kg, relative_uncertainty=3.1e-10)
     '''proton mass'''
-    mn = Constant(1.674_927_498_04e-27, 'kg', relative_uncertainty=5.7e-10)
+    mn = Constant(1.674_927_500_56e-27, si.kg, relative_uncertainty=5.1e-10)
     '''neutron mass'''
-    md = Constant(3.343_583_7724e-27, 'kg', relative_uncertainty=3.0e-10)
+    md = Constant(3.343_583_7768e-27, si.kg, relative_uncertainty=3.1e-10)
     '''deuteron mass'''
-    mt = Constant(5.007_356_7446e-27, 'kg', relative_uncertainty=3.0e-10)
+    mt = Constant(5.007_356_7512e-27, si.kg, relative_uncertainty=3.1e-10)
     '''triton mass'''
-    mh = Constant(5.006_412_7796e-27, 'kg', relative_uncertainty=3.0e-10)
+    mh = Constant(5.006_412_7862e-27, si.kg, relative_uncertainty=3.1e-10)
     '''helion mass'''
-    malpha = Constant(6.644_657_3357e-27, 'kg', relative_uncertainty=3.0e-10)
+    malpha = Constant(6.644_657_3450e-27, si.kg, relative_uncertainty=3.1e-10)
     '''alpha partcle mass'''
 
     alpha = constant(e**2 / (2 * epsilon0 * h * c), simplify=True)
@@ -114,16 +121,12 @@ class SI(ConstClass):
     ge = constant(2 * mue / muB, relative_uncertainty=1.7e-13)
     '''electron g-factor'''
 
-    # physicochemical
+    # physico-chemical
 
-    mu = Constant(1.660_539_066_60e-27, 'kg', relative_uncertainty=3.0e-10)
+    mu = Constant(1.660_539_068_92e-27, si.kg, relative_uncertainty=3.1e-10)
     '''atomic mass constant'''
     Mu = constant(mu * NA)
     '''molar mass constant'''
-    # M12C = constant(12 * Mu)
-    # '''molar mass of C-12'''
-    # NAh = constant(NA * h)
-    # '''molar Planck constant'''
     R = constant(kB * NA)
     '''molar gas constant'''
     F = constant(NA * e)
@@ -142,15 +145,11 @@ class SI(ConstClass):
     b_ = constant(WEIN_F_ZERO * c / c2, 'Hz/K')
     '''Wien frequency displacement law constant'''
 
-    # other defined exact constants
-
-    g = Constant(GRAVITY, 'm/s2')
-    '''standard acceleration of gravity'''
-    T0 = Constant(273.15, 'K')
-    '''standard temperature'''
-    p0 = Constant(100_000, 'Pa')
-    '''standard pressure'''
-    Vm = constant((R * T0 / p0).ito('m3/mol'))
-    '''molar volume of ideal gas (273.5 K, 100 kPa)'''
+    Vm = constant((R * T0 / si.ssp).ito('m3/mol'))
+    '''molar volume of ideal gas (273.15 K, 100 kPa)'''
+    Vmatm = constant((R * T0 / si.atm).ito('m3/mol'))
+    '''molar volume of ideal gas (273.15 K, 101.325 kPa)'''
     n0 = constant(NA / Vm)
-    '''Loschmidt constant (273.5 K, 100 kPa)'''
+    '''Loschmidt constant (273.15 K, 100 kPa)'''
+    n0atm = constant(NA / Vmatm)
+    '''Loschmidt constant (273.15 K, 101.32 kPa)'''

@@ -128,7 +128,7 @@ class Variable(Generic[T]):
 
     @property
     def relative_uncertainty(self) -> T | Zero:
-        return self._uncertainty / self.value
+        return self._uncertainty / abs(self.value)
 
     @relative_uncertainty.setter
     def relative_uncertainty(self, relative_uncertainty: T | Zero) -> None:

@@ -28,7 +28,7 @@ _PREFIX_ALIAS = {'u': 'µ', 'K': 'k'}
 _PREFIX_MAXLEN = max(map(len, _PREFIX_DATA))
 _PREFIX_FULLNAME_MINLEN = min(filter(None, map(len, _PREFIX_FULLNAME)))
 _PREFIX_FULLNAME_MAXLEN = max(map(len, _PREFIX_FULLNAME))
-_UNIT_FULLNAME_ALIAS = {'mitre': 'miter', 'litre': 'liter'}
+_UNIT_FULLNAME_ALIAS = {'miter': 'mitre', 'liter': 'litre'}
 
 
 def _resolve_element(unit: str) -> tuple[str, str]:

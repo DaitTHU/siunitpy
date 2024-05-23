@@ -74,7 +74,7 @@ __UNIT_LIB: dict[Dimension, dict[str, BaseData]] = {
         'a': BaseData('Julian-year', JULIAN_YEAR),
     },
     DimensionConst.LENGTH: {
-        'm': BaseData('meter', 1),
+        'm': BaseData('metre', 1),
         'Å': BaseData('angstrom', 1e-10),  # ångström
         'au': BaseData('astronomical-unit', AU),
         'pc': BaseData('parsec', PC),
@@ -113,7 +113,7 @@ __UNIT_LIB: dict[Dimension, dict[str, BaseData]] = {
         'ha': BaseData('hectare', 10000, never_prefix=True),
     },
     DimensionConst.VOLUME: {
-        'L': BaseData('liter', 1e-3),
+        'L': BaseData('litre', 1e-3),
     },
     DimensionConst.VILOCITY: {
         'c': BaseData('speed-of-light', C, never_prefix=True),

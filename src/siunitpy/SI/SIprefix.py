@@ -4,37 +4,76 @@ __all__ = ['prefix']
 
 
 class prefix(ConstClass):
+    '''The `prefix` constclass offers all prefix factors, 
+    which are just numbers.
+    '''
+
     # SI prefixes
-    Q = quetta = 1e30
-    R = ronna = 1e27
-    Y = yotta = 1e24
-    Z = zetta = 1e21
-    E = exa = 1e18
-    P = peta = 1e15
-    T = tera = 1e12
-    G = giga = 1e9
-    M = mega = 1e6
-    k = kilo = 1e3
-    h = hecto = 1e2
-    da = deca = 1e1
-    d = deci = 1e-1
-    c = centi = 1e-2
-    m = milli = 1e-3
-    u = micro = 1e-6
-    n = nano = 1e-9
-    p = pico = 1e-12
-    f = femto = 1e-15
-    a = atto = 1e-18
-    z = zepto = 1e-21
-    y = yocto = 1e-24
-    r = ronto = 1e-27
-    q = quecto = 1e-30
+
+    quetta = Q = 1e30
+    '''quetta, 10^30'''
+    ronna = R = 1e27
+    '''ronna, 10^27'''
+    yotta = Y = 1e24
+    '''yotta, 10^24'''
+    zetta = Z = 1e21
+    '''zetta, 10^21'''
+    exa = E = 1e18
+    '''exa, 10^18'''
+    peta = P = 1e15
+    '''peta, 10^15'''
+    tera = T = 1e12
+    '''tera, 10^12'''
+    giga = G = 1e9
+    '''giga, 10^9'''
+    mega = M = 1e6
+    '''mega, 10^6'''
+    kilo = k = 1e3
+    '''kilo, 10^3'''
+    hecto = h = 1e2
+    '''hecto, 10^2'''
+    deca = da = 1e1
+    '''deca, 10^1'''
+    deci = d = 1e-1
+    '''deci, 10^-1'''
+    centi = c = 1e-2
+    '''centi, 10^-2'''
+    milli = m = 1e-3
+    '''milli, 10^-3'''
+    micro = u = 1e-6
+    '''micro, 10^-6'''
+    nano = n = 1e-9
+    '''nano, 10^-9'''
+    pico = p = 1e-12
+    '''pico, 10^-12'''
+    femto = f = 1e-15
+    '''femto, 10^-15'''
+    atto = a = 1e-18
+    '''atto, 10^-18'''
+    zepto = z = 1e-21
+    '''zepto, 10^-21'''
+    yocto = y = 1e-24
+    '''yocto, 10^-24'''
+    ronto = r = 1e-27
+    '''ronto, 10^-27'''
+    quecto = q = 1e-30
+    '''quecto, 10^-30'''
+
     # binary prefixes
-    ki = kibi = int(2**10)
-    Mi = mebi = int(2**20)
-    Gi = gibi = int(2**30)
-    Ti = tebi = int(2**40)
-    Pi = pebi = int(2**50)
-    Ei = exbi = int(2**60)
-    Zi = zebi = int(2**70)
-    Yi = yobi = int(2**80)
+
+    kibi = ki = 2**10
+    '''kibi, 2^10'''
+    mebi = Mi = 2**20
+    '''mebi, 2^20'''
+    gibi = Gi = 2**30
+    '''gibi, 2^30'''
+    tebi = Ti = 2**40
+    '''tebi, 2^40'''
+    pebi = Pi = 2**50
+    '''pebi, 2^50'''
+    exbi = Ei = 2**60
+    '''exbi, 2^60'''
+    zebi = Zi = 2**70
+    '''zebi, 2^70'''
+    yobi = Yi = 2**80
+    '''yobi, 2^80'''

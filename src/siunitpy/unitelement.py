@@ -28,6 +28,7 @@ _PREFIX_ALIAS = {'u': 'µ', 'K': 'k'}
 _PREFIX_MAXLEN = max(map(len, _PREFIX_DATA))
 _PREFIX_FULLNAME_MINLEN = min(filter(None, map(len, _PREFIX_FULLNAME)))
 _PREFIX_FULLNAME_MAXLEN = max(map(len, _PREFIX_FULLNAME))
+_UNIT_FULLNAME_ALIAS = {'mitre': 'miter', 'litre': 'liter'}
 
 
 def _resolve_element(unit: str) -> tuple[str, str]:
@@ -47,6 +48,8 @@ def _resolve_element(unit: str) -> tuple[str, str]:
         return _UNIT_FULLNAME[unit], ''
     for prefix_len in range(_PREFIX_FULLNAME_MINLEN, _PREFIX_FULLNAME_MAXLEN):
         prefix, base = unit[:prefix_len], unit[prefix_len:]
+        if base in _UNIT_FULLNAME_ALIAS:
+            base = _UNIT_FULLNAME_ALIAS[base]
         if prefix in _PREFIX_FULLNAME and base in _UNIT_FULLNAME:
             if _UNIT_DATA[_UNIT_FULLNAME[base]].never_prefix:
                 continue
